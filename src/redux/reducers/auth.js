@@ -8,7 +8,7 @@ const initialState = {
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    case 'LOGIN_PENDING': {
+    case 'AUTH_USER_LOGIN_PENDING': {
       console.log('login pending');
       return {
         ...state,
@@ -17,22 +17,31 @@ export default (state = initialState, action) => {
         alertMsg: 'Logging in ...',
       };
     }
-    case 'LOGIN_FULFILLED': {
+    case 'AUTH_USER_LOGIN_FULFILLED': {
       console.log('login fullfiled');
       return {
         ...state,
         isLogin: true,
         isError: false,
         token: action.payload.data.token,
-        alertMsg: 'Login succesful',
+        alertMsg: 'Login successfull',
       };
     }
-    case 'LOGIN_REJECTED': {
+    case 'AUTH_USER_LOGIN_REJECTED': {
       return {
         ...state,
         isLogin: false,
         isError: true,
         alertMsg: 'Login failed',
+      };
+    }
+    case 'AUTH_USER_LOGOUT': {
+      return {
+        ...state,
+        isLogin: false,
+        isError: false,
+        token: '',
+        alertMsg: 'Logout successfull',
       };
     }
     default: {

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {
   Text,
   View,
@@ -10,93 +10,19 @@ import {
 } from 'react-native';
 import Header from '../components/HeaderHome';
 import ProductCard from '../components/ProductCard';
-
-const otherProducts = [
-  {
-    id: 1,
-    name: "Illi London Woman's Maxi Dress",
-    description:
-      'Fit Type: Regular Fabric: 95% Polyester, 5% Spandex Style: A-Line Midi Maxi Dress Fit Type: Regular Sleeve Type: Half Sleeve Dress Length: Calf Length',
-    stock: 188,
-    price: 150000,
-    created: '2020-10-29T10:22:22.000Z',
-    rating: null,
-    ratingCount: null,
-    product_image_1: 'Uploads/2-product_image-1603966940378.jpg',
-    product_image_2: 'Uploads/2-product_image-1603966940437.jpg',
-    product_image_3: 'Uploads/2-product_image-1603966940440.jpg',
-    product_image_4: 'Uploads/2-product_image-1603966940447.jpg',
-    store_name: 'Arsenal Clothes',
-  },
-  {
-    id: 2,
-    name: "Illi London Woman's Maxi Dress",
-    description:
-      'Fit Type: Regular Fabric: 95% Polyester, 5% Spandex Style: A-Line Midi Maxi Dress Fit Type: Regular Sleeve Type: Half Sleeve Dress Length: Calf Length',
-    stock: 188,
-    price: 150000,
-    created: '2020-10-29T10:22:22.000Z',
-    rating: null,
-    ratingCount: null,
-    product_image_1: 'Uploads/2-product_image-1603966940378.jpg',
-    product_image_2: 'Uploads/2-product_image-1603966940437.jpg',
-    product_image_3: 'Uploads/2-product_image-1603966940440.jpg',
-    product_image_4: 'Uploads/2-product_image-1603966940447.jpg',
-    store_name: 'Arsenal Clothes',
-  },
-  {
-    id: 3,
-    name: "Illi London Woman's Maxi Dress",
-    description:
-      'Fit Type: Regular Fabric: 95% Polyester, 5% Spandex Style: A-Line Midi Maxi Dress Fit Type: Regular Sleeve Type: Half Sleeve Dress Length: Calf Length',
-    stock: 188,
-    price: 150000,
-    created: '2020-10-29T10:22:22.000Z',
-    rating: null,
-    ratingCount: null,
-    product_image_1: 'Uploads/2-product_image-1603966940378.jpg',
-    product_image_2: 'Uploads/2-product_image-1603966940437.jpg',
-    product_image_3: 'Uploads/2-product_image-1603966940440.jpg',
-    product_image_4: 'Uploads/2-product_image-1603966940447.jpg',
-    store_name: 'Arsenal Clothes',
-  },
-  {
-    id: 4,
-    name: "Illi London Woman's Maxi Dress",
-    description:
-      'Fit Type: Regular Fabric: 95% Polyester, 5% Spandex Style: A-Line Midi Maxi Dress Fit Type: Regular Sleeve Type: Half Sleeve Dress Length: Calf Length',
-    stock: 188,
-    price: 150000,
-    created: '2020-10-29T10:22:22.000Z',
-    rating: null,
-    ratingCount: null,
-    product_image_1: 'Uploads/2-product_image-1603966940378.jpg',
-    product_image_2: 'Uploads/2-product_image-1603966940437.jpg',
-    product_image_3: 'Uploads/2-product_image-1603966940440.jpg',
-    product_image_4: 'Uploads/2-product_image-1603966940447.jpg',
-    store_name: 'Arsenal Clothes',
-  },
-  {
-    id: 5,
-    name: "Illi London Woman's Maxi Dress",
-    description:
-      'Fit Type: Regular Fabric: 95% Polyester, 5% Spandex Style: A-Line Midi Maxi Dress Fit Type: Regular Sleeve Type: Half Sleeve Dress Length: Calf Length',
-    stock: 188,
-    price: 150000,
-    created: '2020-10-29T10:22:22.000Z',
-    rating: null,
-    ratingCount: null,
-    product_image_1: 'Uploads/2-product_image-1603966940378.jpg',
-    product_image_2: 'Uploads/2-product_image-1603966940437.jpg',
-    product_image_3: 'Uploads/2-product_image-1603966940440.jpg',
-    product_image_4: 'Uploads/2-product_image-1603966940447.jpg',
-    store_name: 'Arsenal Clothes',
-  },
-];
+import {useSelector, useDispatch} from 'react-redux';
+import productActions from '../redux/actions/product';
 
 export default function Home() {
-  const newProduct = otherProducts;
-  const popularProduct = otherProducts;
+  const dispatch = useDispatch();
+
+  React.useEffect(() => {
+    dispatch(productActions.getNewItems());
+    dispatch(productActions.getPopularItems());
+  }, [dispatch]);
+
+  const newProduct = useSelector((state) => state.product.dataNewItems);
+  const popularProduct = useSelector((state) => state.product.dataPopularItems);
 
   return (
     <SafeAreaView>

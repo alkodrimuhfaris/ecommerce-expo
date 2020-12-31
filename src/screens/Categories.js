@@ -2,6 +2,7 @@ import React from 'react';
 import {Text, FlatList, StyleSheet, View} from 'react-native';
 import {Container, Button} from 'native-base';
 import CategoryCard from '../components/CategoryCard';
+import {useNavigation} from '@react-navigation/native';
 
 const data = [
   {
@@ -23,22 +24,26 @@ const data = [
 ];
 
 export default function Categories() {
+  const navigation = useNavigation();
   const categoriesData = data;
   const [categorySelect, setCategory] = React.useState(0);
 
-  const selectCategory = (item) => {
-    console.log(item);
-    setCategory(item);
+  const selectCategory = (id, name) => {
+    navigation.navigate('AllProduct', {title: name, id});
   };
 
   function nextPage() {
     console.log('next');
   }
 
+  const goToAllItem = () => {
+    navigation.navigate('AllProduct', {title: 'All item'});
+  };
+
   return (
     <Container style={styles.container}>
       <View style={styles.btnWrapper}>
-        <Button rounded style={styles.btn}>
+        <Button block onPress={goToAllItem} rounded style={styles.btn}>
           <Text style={styles.btnTxt}>VIEW ALL ITEMS</Text>
         </Button>
       </View>
@@ -81,7 +86,6 @@ const styles = StyleSheet.create({
   },
   btn: {
     padding: 5,
-    width: '100%',
     backgroundColor: '#457373',
     justifyContent: 'center',
     alignItems: 'center',

@@ -167,7 +167,7 @@ const bodyStyles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   price: {
-    fontSize: 24,
+    fontSize: 26,
     color: '#457373',
   },
   starWrap: {
@@ -177,7 +177,7 @@ const bodyStyles = StyleSheet.create({
     marginVertical: 5,
   },
   description: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#102526',
   },
   anotherProduct: {

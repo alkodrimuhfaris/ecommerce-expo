@@ -1,6 +1,5 @@
 import React from 'react';
 import {Text, View, StyleSheet, Image, TouchableOpacity} from 'react-native';
-import {Card} from 'native-base';
 import currency from '../helpers/currencyFormat';
 import StarRating from '../components/StarRating';
 import {useNavigation} from '@react-navigation/native';
@@ -17,7 +16,7 @@ export default function CardItem({item, newProduct = false}) {
 
   return (
     <View style={cardStyle.parent}>
-      <TouchableOpacity onPress={goToProduct}>
+      <TouchableOpacity onPress={goToProduct} style={cardStyle.parentWrapper}>
         <View style={cardStyle.relativeParent}>
           {newProduct ? (
             <View style={cardStyle.newSign}>
@@ -31,21 +30,23 @@ export default function CardItem({item, newProduct = false}) {
             style={cardStyle.image}
           />
         </View>
-        <View style={cardStyle.bellowImgWrap}>
-          <View style={cardStyle.starWrap}>
-            <StarRating
-              percent={(rating * 100) / 5}
-              ratingCount={ratingCount}
-            />
+        <View style={cardStyle.componentWrapper}>
+          <View style={cardStyle.bellowImgWrap}>
+            <View style={cardStyle.starWrap}>
+              <StarRating
+                percent={(rating * 100) / 5}
+                ratingCount={ratingCount}
+              />
+            </View>
+            <Text style={cardStyle.storeName}>{store_name}</Text>
+            <Text
+              ellipsizeMode="tail"
+              numberOfLines={1}
+              style={cardStyle.itemName}>
+              {name}
+            </Text>
+            <Text style={cardStyle.itemPrice}>{currency(150000)}</Text>
           </View>
-          <Text style={cardStyle.storeName}>{store_name}</Text>
-          <Text
-            ellipsizeMode="tail"
-            numberOfLines={2}
-            style={cardStyle.itemName}>
-            {name}
-          </Text>
-          <Text style={cardStyle.itemPrice}>{currency(150000)}</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -54,11 +55,15 @@ export default function CardItem({item, newProduct = false}) {
 
 const cardStyle = StyleSheet.create({
   parent: {
+    width: '100%',
+    height: 100,
     marginVertical: 10,
     borderRadius: 8,
     elevation: 2,
-    width: 150,
-    height: 300,
+  },
+  parentWrapper: {
+    flexDirection: 'row',
+    width: '100%',
   },
   newSign: {
     padding: 5,
@@ -70,6 +75,8 @@ const cardStyle = StyleSheet.create({
     borderRadius: 15,
   },
   relativeParent: {
+    width: '30%',
+    height: 100,
     position: 'relative',
   },
   signTxt: {
@@ -80,14 +87,21 @@ const cardStyle = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 180,
+    height: '100%',
     borderRadius: 8,
     zIndex: 1,
   },
+  componentWrapper: {
+    width: '70%',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
   bellowImgWrap: {
-    padding: 10,
+    width: '100%',
     flexDirection: 'column',
-    justifyContent: 'space-around',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   starWrap: {
     flexDirection: 'row',
@@ -97,6 +111,7 @@ const cardStyle = StyleSheet.create({
     color: '#9B9B9B',
   },
   itemName: {
+    width: '100%',
     fontSize: 16,
     color: '#102526',
     fontWeight: 'bold',

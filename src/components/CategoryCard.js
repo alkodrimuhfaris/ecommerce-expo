@@ -8,14 +8,12 @@ export default function CategoryCard({item, selectCategory}) {
   const {item: categoryData} = item;
   const {id, name, categories_image} = categoryData;
 
-  const selected = (category_id) => {
-    selectCategory(category_id);
+  const selected = () => {
+    selectCategory(id, name);
   };
 
   return (
-    <TouchableOpacity
-      style={cardStyle.cardWrapper}
-      onPress={() => selected(id)}>
+    <TouchableOpacity style={cardStyle.cardWrapper} onPress={selected}>
       <Card style={cardStyle.parent}>
         <Text style={cardStyle.text}>{name}</Text>
         <Image

@@ -11,7 +11,7 @@ export default function ColorButton({item, selected}) {
   }, [selected, detail]);
 
   return (
-    <View style={active ? colorBtn.outerActive : colorBtn.outerInactive}>
+    <View style={[colorBtn.outer, active ? colorBtn.outerActive : null]}>
       <View style={[colorBtn.inner, {backgroundColor: `${detail.hex}`}]}>
         <Text>&nbsp;</Text>
       </View>
@@ -20,19 +20,15 @@ export default function ColorButton({item, selected}) {
 }
 
 const colorBtn = StyleSheet.create({
-  outerActive: {
+  outer: {
     width: 30,
     height: 30,
     borderRadius: 30,
     padding: 2,
+  },
+  outerActive: {
     borderWidth: 1,
     borderColor: '#457373',
-  },
-  outerInactive: {
-    width: 30,
-    height: 30,
-    borderRadius: 30,
-    padding: 2,
   },
   inner: {
     flex: 1,

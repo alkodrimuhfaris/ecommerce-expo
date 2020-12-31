@@ -15,7 +15,7 @@ export default function BookingCard({item = {}, updateSet}) {
   const [del, isDelOpen] = useState(false);
 
   useEffect(() => {
-    updateSet(index, data.detail_id, count, price);
+    // updateSet(index, data.detail_id, count, price);
     console.log('this from booking card');
     console.log(price);
   }, [count, price]);

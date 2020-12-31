@@ -51,21 +51,21 @@ export default function MyBag() {
 
   const [totalPrice, setTotalPrice] = useState(0);
 
-  useEffect(() => {
-    Object.keys(dataCart).length &&
-      setBookArray(
-        dataCart.bookingData.map((item) => {
-          const {quantity, price, detail_id} = item;
-          return {quantity, price: quantity * price, detail_id};
-        }),
-      );
-    // bookArray.length && setPrices(bookArray.map((item) => item.price));
-    // let tot = 0;
-    // prices.length && prices.forEach((item) => (tot += item));
-    // setTotalPrice(tot);
-    // tot = 0;
-    console.log('this is when mounting');
-  }, [bookArray]);
+  // useEffect(() => {
+  //   Object.keys(dataCart).length &&
+  //     setBookArray(
+  //       dataCart.bookingData.map((item) => {
+  //         const {quantity, price, detail_id} = item;
+  //         return {quantity, price: quantity * price, detail_id};
+  //       }),
+  //     );
+  //   // bookArray.length && setPrices(bookArray.map((item) => item.price));
+  //   // let tot = 0;
+  //   // prices.length && prices.forEach((item) => (tot += item));
+  //   // setTotalPrice(tot);
+  //   // tot = 0;
+  //   console.log('this is when mounting');
+  // }, [bookArray]);
 
   function update(index, detail_id, quantity, price) {
     console.log(bookArray);
@@ -79,18 +79,18 @@ export default function MyBag() {
     console.log('this changes book array');
   }
 
-  useEffect(() => {
-    console.log('book array is changenging');
-    bookArray.length && setPrices(bookArray.map((item) => item.price));
-  }, [bookArray]);
+  // useEffect(() => {
+  //   console.log('book array is changenging');
+  //   bookArray.length && setPrices(bookArray.map((item) => item.price));
+  // }, [bookArray]);
 
-  useEffect(() => {
-    console.log('price is changenging');
-    let tot = 0;
-    prices.length && prices.forEach((item) => (tot += item));
-    setTotalPrice(tot);
-    tot = 0;
-  }, [prices]);
+  // useEffect(() => {
+  //   console.log('price is changenging');
+  //   let tot = 0;
+  //   prices.length && prices.forEach((item) => (tot += item));
+  //   setTotalPrice(tot);
+  //   tot = 0;
+  // }, [prices]);
 
   function nextPage() {
     console.log('next');

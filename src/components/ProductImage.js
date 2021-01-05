@@ -7,7 +7,7 @@ export default function ProductImage({item}) {
     <TouchableOpacity style={imageStyles.parent}>
       <Image
         source={{
-          uri: 'http://54.147.22.87:8080/' + pic,
+          uri: process.env.EXPO_API_URL + pic,
         }}
         style={imageStyles.image}
       />

@@ -14,6 +14,7 @@ export default (state = initialState, action) => {
         ...state,
         isLoading: true,
         isError: false,
+        isLogin: false,
         alertMsg: 'Logging in ...',
       };
     }
@@ -23,6 +24,7 @@ export default (state = initialState, action) => {
         ...state,
         isLogin: true,
         isError: false,
+        isLoading: false,
         token: action.payload.data.token,
         alertMsg: 'Login successfull',
       };
@@ -32,7 +34,8 @@ export default (state = initialState, action) => {
         ...state,
         isLogin: false,
         isError: true,
-        alertMsg: 'Login failed',
+        isLoading: false,
+        alertMsg: action.payload.response.data.message,
       };
     }
     case 'AUTH_USER_LOGOUT': {
@@ -40,8 +43,15 @@ export default (state = initialState, action) => {
         ...state,
         isLogin: false,
         isError: false,
+        isLoading: false,
         token: '',
         alertMsg: 'Logout successfull',
+      };
+    }
+    case 'CLEAR_ALERT_LOGIN': {
+      return {
+        ...state,
+        ...initialState,
       };
     }
     default: {

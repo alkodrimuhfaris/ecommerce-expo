@@ -92,6 +92,7 @@ export default function ContentProduct({
           <FlatList
             horizontal={true}
             data={alsoLikeData}
+            showsHorizontalScrollIndicator={false}
             renderItem={(item) => {
               return (
                 <View style={bodyStyles.cardWrap}>

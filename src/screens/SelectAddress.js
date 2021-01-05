@@ -3,10 +3,12 @@ import {Text, View, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
 import {Container, Button, Input, Card} from 'native-base';
 import {FontAwesome} from '@expo/vector-icons';
 import AddressCards from '../components/AddressCards';
+import {useSelector, useDispatch} from 'react-redux';
+import actions from '../redux/actions/index';
 
 const data = [
   {
-    id: 2,
+    id: 1,
     user_id: 3,
     address_name: 'Home',
     primary_address: 1,
@@ -49,6 +51,7 @@ export default function SelectAddress() {
   useEffect(() => {
     console.log(search);
     console.log(address);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   const selecting = (e) => {
@@ -72,7 +75,7 @@ export default function SelectAddress() {
   };
 
   return (
-    <Container style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.inputWrapper}>
         <Input
           rounded
@@ -113,10 +116,10 @@ export default function SelectAddress() {
         }}
       />
 
-      <Button rounded style={styles.btn} onPress={addNewAddress}>
+      <Button block rounded style={styles.btn} onPress={addNewAddress}>
         <Text style={styles.btnTxt}>ADD NEW ADDRESS</Text>
       </Button>
-    </Container>
+    </View>
   );
 }
 
@@ -125,6 +128,7 @@ const styles = StyleSheet.create({
     paddingRight: '5%',
     paddingLeft: '5%',
     alignItems: 'center',
+    flex: 1,
   },
   inputWrapper: {
     width: '100%',
@@ -158,7 +162,6 @@ const styles = StyleSheet.create({
   btn: {
     margin: 3,
     padding: 3,
-    flex: 1,
     borderColor: '#457373',
     borderWidth: 2,
     backgroundColor: 'transparent',

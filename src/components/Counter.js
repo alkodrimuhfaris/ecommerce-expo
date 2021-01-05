@@ -21,7 +21,7 @@ export default function Counter({values, countChange}) {
     <View style={cardStyle.btnWrap}>
       <TouchableOpacity
         style={cardStyle.btn}
-        disabled={!count}
+        disabled={count <= 1}
         onPress={decrease}>
         <Text style={cardStyle.btnTxt}>-</Text>
       </TouchableOpacity>

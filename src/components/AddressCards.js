@@ -1,7 +1,11 @@
 import React from 'react';
 import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 
-export default function AddressCards({item, selected = 0, changeAddress}) {
+export default function AddressCards({
+  item,
+  selected = 0,
+  changeAddress = () => {},
+}) {
   const {item: detailAddress} = item;
   const {
     id,

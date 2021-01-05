@@ -17,8 +17,7 @@ import Search from './Search';
 import SelectAddress from './SelectAddress';
 import Signup from './Signup';
 import AllProduct from './AllProduct';
-
-import {connect} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -31,7 +30,10 @@ import {MaterialIcons, AntDesign, Feather} from '@expo/vector-icons';
 
 const AuthStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}>
       <Stack.Screen options={{title: 'Login'}} name="Login" component={Login} />
       <Stack.Screen
         options={{title: 'Sign Up'}}
@@ -164,29 +166,25 @@ const TabbedScreen = () => {
   );
 };
 
-class Main extends Component {
-  render() {
-    return (
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-          }}>
-          <Stack.Screen name="TabbedScreen" component={TabbedScreen} />
-          <Stack.Screen name="AllProduct" component={AllProduct} />
-          <Stack.Screen name="Search" component={Search} />
+export default function Main() {
+  const isLogin = useSelector((state) => state.auth.isLogin);
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}>
+        <Stack.Screen name="TabbedScreen" component={TabbedScreen} />
+        {!isLogin ? (
           <Stack.Screen name="AuthStack" component={AuthStack} />
-          <Stack.Screen name="ProfileStack" component={ProfileStack} />
-          <Stack.Screen name="ProductStack" component={ProductStack} />
-          <Stack.Screen name="AddressStack" component={AddressStack} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    );
-  }
+        ) : null}
+        <Stack.Screen name="AllProduct" component={AllProduct} />
+        <Stack.Screen name="Search" component={Search} />
+        <Stack.Screen name="ProfileStack" component={ProfileStack} />
+        <Stack.Screen name="ProductStack" component={ProductStack} />
+        <Stack.Screen name="AddressStack" component={AddressStack} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
-
-const mapSatateToProps = (state) => ({
-  auth: state.auth,
-});
-
-export default connect(mapSatateToProps)(Main);

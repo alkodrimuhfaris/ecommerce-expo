@@ -5,135 +5,30 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  FlatList,
 } from 'react-native';
 import {Container, Button, Input, Card} from 'native-base';
 import {FontAwesome} from '@expo/vector-icons';
+import AddressCards from '../components/AddressCards';
+import {useSelector, useDispatch} from 'react-redux';
+import actions from '../redux/actions/index';
 
-const data = [
-  {
-    id: 2,
-    user_id: 3,
-    address_name: 'Home',
-    primary_address: 1,
-    recipient_name: 'Marzuki',
-    phone: '089633449007',
-    city: 'Tangerang',
-    city_type: 'Kota',
-    province_id: 3,
-    city_id: 456,
-    address: 'Gang H. Samir No 76 B, Karang Timur, Karang Tengah, Tangerang',
-    postal_code: 14321,
-    maps_pin_point: null,
-    created_at: '2020-10-30T01:29:18.000Z',
-    updated_at: '2020-11-18T01:32:33.000Z',
-  },
-  {
-    id: 2,
-    user_id: 3,
-    address_name: 'Home',
-    primary_address: 1,
-    recipient_name: 'Marzuki',
-    phone: '089633449007',
-    city: 'Tangerang',
-    city_type: 'Kota',
-    province_id: 3,
-    city_id: 456,
-    address: 'Gang H. Samir No 76 B, Karang Timur, Karang Tengah, Tangerang',
-    postal_code: 14321,
-    maps_pin_point: null,
-    created_at: '2020-10-30T01:29:18.000Z',
-    updated_at: '2020-11-18T01:32:33.000Z',
-  },
-]
-
-  function AddressCards({selected = 0}) {
-    console.log(selected);
-    return (
-      <Card
-        rounded
-        style={!selected ? addressStyle.card : addressStyle.cardSelect}>
-        <View style={addressStyle.nameWrap}>
-          <Text style={!selected ? addressStyle.name : addressStyle.nameSelect}>
-            Jone Doe
-          </Text>
-          <TouchableOpacity>
-            <Text
-              style={
-                !selected ? addressStyle.change : addressStyle.changeSelect
-              }>
-              Change
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <Text
-          style={!selected ? addressStyle.address : addressStyle.addressSelect}
-          numberOfLines={2}>
-          {'3 Newbridge Court Chino Hills, CA 91709, United States'}
-        </Text>
-      </Card>
-    );
-  };
-
-const addressStyle = StyleSheet.create({
-  card: {
-    width: 350,
-    height: 120,
-    padding: 28,
-  },
-  cardSelect: {
-    width: 350,
-    height: 120,
-    padding: 28,
-    backgroundColor: '#457373',
-  },
-  container: {
-    padding: '2%',
-  },
-  nameWrap: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  name: {
-    fontSize: 14,
-    color: '#102526',
-    fontWeight: 'bold',
-  },
-  nameSelect: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  change: {
-    fontSize: 14,
-    color: '#457373',
-    fontWeight: 'bold',
-  },
-  changeSelect: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  address: {
-    fontSize: 14,
-    color: '#102526',
-    marginTop: 10,
-  },
-  addressSelect: {
-    fontSize: 14,
-    color: '#dddddd',
-    marginTop: 10,
-  },
-});
-
-export default function SelectAddress() {
-  const address = data;
+export default function SelectAddress({params}) {
+  const dispatch = useDispatch();
+  const {addressAction} = actions;
+  const token = useSelector((state) => state.auth.token);
+  const getAddress = useSelector((state) => state.getAddress);
   const [search, setSearch] = useState('');
   const [select, setSelect] = useState(0);
 
   const selecting = (e) => {
     setSelect(e);
   };
+
+  useEffect(() => {
+    dispatch(addressAction.getAddress(token));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   useEffect(() => {
     console.log(select);
@@ -144,7 +39,7 @@ export default function SelectAddress() {
   };
 
   return (
-    <Container style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.inputWrapper}>
         <Input
           rounded
@@ -164,23 +59,27 @@ export default function SelectAddress() {
 
       <Text style={styles.title}>Address</Text>
 
-      <ScrollView>
-        <View style={styles.addressArrWrap}>
-          {[...Array(10)].map((_item, index) => (
+      <FlatList
+        data={getAddress.data}
+        renderItem={(item) => {
+          return (
             <TouchableOpacity
-              key={index}
-              onPress={() => selecting(index)}
+              key={item.index}
+              onPress={() => selecting(item.index)}
               style={styles.wrapper}>
-              <AddressCards selected={select === index ? 1 : 0} />
+              <AddressCards
+                item={item}
+                selected={select === item.index ? 1 : 0}
+              />
             </TouchableOpacity>
-          ))}
-        </View>
+          );
+        }}
+      />
 
-        <Button rounded style={styles.btn}>
-          <Text style={styles.btnTxt}>ADD NEW ADDRESS</Text>
-        </Button>
-      </ScrollView>
-    </Container>
+      <Button rounded style={styles.btn}>
+        <Text style={styles.btnTxt}>ADD NEW ADDRESS</Text>
+      </Button>
+    </View>
   );
 }
 

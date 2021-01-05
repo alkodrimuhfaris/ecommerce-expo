@@ -26,7 +26,7 @@ export default function CardItem({item, newProduct = false}) {
           ) : null}
           <Image
             source={{
-              uri: 'http://54.147.22.87:8080/' + product_image_1,
+              uri: process.env.EXPO_API_URL + product_image_1,
             }}
             style={cardStyle.image}
           />

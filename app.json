@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "tukuApps",
+    "name": "TukuApps",
     "slug": "tukuApps",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -23,10 +23,12 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.alkodrimuhfaris.tukuApps"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "description": "Apps for online shopping"
   }
 }

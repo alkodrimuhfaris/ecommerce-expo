@@ -4,9 +4,7 @@ import qs from 'qs';
 export default {
   getDetailItem: (itemId) => ({
     type: 'GET_DETAIL_PRODUCT',
-    payload: services().get(
-      'public/products/' + itemId + '?' + qs.stringify({limit: '-'}),
-    ),
+    payload: services().get(`/public/products/${itemId}`),
   }),
   getNewItems: () => ({
     type: 'GET_NEW_PRODUCTS',

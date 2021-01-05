@@ -5,105 +5,187 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import {Input, Form, Item, Button, Label} from 'native-base';
 import {FontAwesome} from '@expo/vector-icons';
+import {Formik} from 'formik';
+import * as Yup from 'yup';
+import {useNavigation} from '@react-navigation/native';
+import actions from '../redux/actions/index';
+import {useDispatch, useSelector} from 'react-redux';
+import ModalLoading from '../components/ModalLoading';
+import ModalAlert from '../components/ModalAlert';
+
+const schemaSignup = Yup.object().shape({
+  name: Yup.string().required('Nama lengkap dibutuhkan'),
+  email: Yup.string()
+    .email('Masukkan alamat email dengan benar')
+    .required('Email dibutuhkan'),
+  password: Yup.string()
+    .min(8, 'Password setidaknya terdiri dari 8 karakter')
+    .required('Password dibutuhkan'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('password'), null], 'Password tidak cocok')
+    .required('Konfirmasi password dibutuhkan'),
+});
 
 export default function ChangeProfile() {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const {signupAction} = actions;
+  const dispatch = useDispatch();
+  const signup = useSelector((state) => state.signup);
+  const navigation = useNavigation();
+  const [propsNotif, setPropsNotif] = useState({});
+  const [openNotif, setOpenNotif] = useState(false);
 
   useEffect(() => {
-    console.log(email);
-    console.log(name);
-    console.log(password);
-  }, [email, name, password]);
+    if (signup.error) {
+      setPropsNotif({
+        content: signup.message,
+        confirm: () => {
+          dispatch(signupAction.clearAlert());
+          setOpenNotif(false);
+        },
+        useOneBtn: true,
+      });
+      setOpenNotif(true);
+    } else if (signup.success) {
+      setPropsNotif({
+        content: 'Sign up success!',
+        confirm: () => {
+          dispatch(signupAction.clearAlert());
+          navigation.navigate('Login');
+          setOpenNotif(false);
+        },
+        useOneBtn: true,
+      });
+      setOpenNotif(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signup.pending]);
 
   const goToLogin = () => {
-    console.log('go to login');
+    navigation.navigate('Login');
   };
 
-  const signUp = () => {
-    const formSignUp = {
-      name,
-      email,
-      password,
-      confirmPassword,
-    };
-    console.log(formSignUp);
+  const goSignUp = (values) => {
+    const {confirmPassword, ...data} = values;
+    console.log(data);
+    dispatch(signupAction.signup(data));
   };
 
   return (
-    <View style={styles.parent}>
+    <SafeAreaView style={styles.parent}>
+      <ModalLoading modalOpen={signup.pending} />
+
+      <ModalAlert modalOpen={openNotif} {...propsNotif} />
+
       <View style={styles.wrapper}>
         <Text style={styles.title}>Sign Up</Text>
 
-        <ScrollView style={styles.scroll}>
-          <Form style={styles.container}>
-            <View style={styles.secondary}>
-              <Item floatingLabel style={styles.floatingLbl}>
-                <Label style={styles.labelTxt}>Name</Label>
-                <Input
-                  placeholder="Name"
-                  onChangeText={(e) => setName(e)}
-                  style={styles.input}
-                  value={name}
-                  block
-                />
-              </Item>
+        <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
+          <Formik
+            initialValues={{
+              email: '',
+              password: '',
+            }}
+            validationSchema={schemaSignup}
+            onSubmit={(values) => goSignUp(values)}>
+            {({
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              values,
+              touched,
+              errors,
+            }) => {
+              return (
+                <Form style={styles.container}>
+                  <View style={styles.secondary}>
+                    <Item floatingLabel style={styles.floatingLbl}>
+                      <Label style={styles.labelTxt}>Name</Label>
+                      <Input
+                        placeholder="Name"
+                        onChangeText={handleChange('name')}
+                        onBlur={handleBlur('name')}
+                        style={styles.input}
+                        value={values.name}
+                        block
+                      />
+                    </Item>
+                    {touched.name && errors.name && (
+                      <Text style={styles.error}>{errors.name}</Text>
+                    )}
 
-              <Item floatingLabel style={styles.floatingLbl}>
-                <Label style={styles.labelTxt}>Email</Label>
-                <Input
-                  placeholder="Email"
-                  onChangeText={(e) => setEmail(e)}
-                  style={styles.input}
-                  value={email}
-                  block
-                />
-              </Item>
+                    <Item floatingLabel style={styles.floatingLbl}>
+                      <Label style={styles.labelTxt}>Email</Label>
+                      <Input
+                        placeholder="Email"
+                        onChangeText={handleChange('email')}
+                        onBlur={handleBlur('email')}
+                        style={styles.input}
+                        value={values.email}
+                        block
+                      />
+                    </Item>
+                    {touched.email && errors.email && (
+                      <Text style={styles.error}>{errors.email}</Text>
+                    )}
 
-              <Item floatingLabel style={styles.floatingLbl}>
-                <Label style={styles.labelTxt}>Password</Label>
-                <Input
-                  placeholder="Password"
-                  onChangeText={(e) => setPassword(e)}
-                  secureTextEntry
-                  style={styles.input}
-                  value={password}
-                />
-              </Item>
+                    <Item floatingLabel style={styles.floatingLbl}>
+                      <Label style={styles.labelTxt}>Password</Label>
+                      <Input
+                        placeholder="Password"
+                        onChangeText={handleChange('password')}
+                        onBlur={handleBlur('password')}
+                        secureTextEntry
+                        style={styles.input}
+                        value={values.password}
+                      />
+                    </Item>
+                    {touched.password && errors.password && (
+                      <Text style={styles.error}>{errors.password}</Text>
+                    )}
 
-              <Item floatingLabel style={styles.floatingLbl}>
-                <Label style={styles.labelTxt}>Confirm Password</Label>
-                <Input
-                  placeholder="Confirm Password"
-                  onChangeText={(e) => setConfirmPassword(e)}
-                  secureTextEntry
-                  style={styles.input}
-                  value={confirmPassword}
-                />
-              </Item>
-            </View>
-          </Form>
+                    <Item floatingLabel style={styles.floatingLbl}>
+                      <Label style={styles.labelTxt}>Confirm Password</Label>
+                      <Input
+                        placeholder="Confirm Password"
+                        onChangeText={handleChange('confirmPassword')}
+                        onBlur={handleBlur('confirmPassword')}
+                        secureTextEntry
+                        style={styles.input}
+                        value={values.confirmPassword}
+                      />
+                    </Item>
+                    {touched.confirmPassword && errors.confirmPassword && (
+                      <Text style={styles.error}>{errors.confirmPassword}</Text>
+                    )}
+                  </View>
+
+                  <View style={styles.forgotContainer}>
+                    <TouchableOpacity
+                      onPress={goToLogin}
+                      style={styles.forgotWrapper}>
+                      <Text style={styles.forgot}>
+                        Already Have An Account?
+                      </Text>
+                      <FontAwesome name="long-arrow-right" color={'#457373'} />
+                    </TouchableOpacity>
+                  </View>
+
+                  <Button onPress={handleSubmit} style={styles.btn} block>
+                    <Text style={styles.btnTxt} block>
+                      SIGN UP
+                    </Text>
+                  </Button>
+                </Form>
+              );
+            }}
+          </Formik>
         </ScrollView>
-
-        <View style={styles.forgotContainer}>
-          <TouchableOpacity onPress={goToLogin} style={styles.forgotWrapper}>
-            <Text style={styles.forgot}>Already Have An Account?</Text>
-            <FontAwesome name="long-arrow-right" color={'#457373'} />
-          </TouchableOpacity>
-        </View>
-
-        <Button onPress={signUp} style={styles.btn} block>
-          <Text style={styles.btnTxt} block>
-            SIGN UP
-          </Text>
-        </Button>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -190,5 +272,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
+  },
+  error: {
+    fontSize: 12,
+    color: '#7C4935',
   },
 });

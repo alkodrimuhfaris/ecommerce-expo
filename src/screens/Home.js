@@ -19,10 +19,11 @@ export default function Home() {
   React.useEffect(() => {
     dispatch(productActions.getNewItems());
     dispatch(productActions.getPopularItems());
-  }, [dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const newProduct = useSelector((state) => state.product.dataNewItems);
-  const popularProduct = useSelector((state) => state.product.dataPopularItems);
+  const newProduct = useSelector((state) => state.product.newProducts);
+  const popularProduct = useSelector((state) => state.product.popularProducts);
 
   return (
     <SafeAreaView>
@@ -42,6 +43,7 @@ export default function Home() {
         <FlatList
           horizontal={true}
           data={newProduct}
+          showsHorizontalScrollIndicator={false}
           renderItem={(item) => {
             return (
               <View style={styles.cardWrap}>

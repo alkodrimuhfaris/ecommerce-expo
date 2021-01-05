@@ -3,9 +3,17 @@ import {View, Text, Image, TouchableOpacity, StyleSheet} from 'react-native';
 import {Card} from 'native-base';
 import {FontAwesome} from '@expo/vector-icons';
 import currencyFormat from '../helpers/currencyFormat';
+import ModalAlert from './ModalAlert';
+import ModalLoading from './ModalLoading';
 
-export default function BookingCard({item = {}, updateSet}) {
+export default function BookingCard({
+  item = {},
+  delCart = () => {},
+  setQuantity = () => {},
+  quantity = [],
+}) {
   const {item: data, index} = item;
+  const {EXPO_API_URL} = process.env;
   const [count, setCount] = useState(
     Object.keys(data).length ? data.quantity : 0,
   );
@@ -13,6 +21,15 @@ export default function BookingCard({item = {}, updateSet}) {
     Object.keys(data).length ? data.price * data.count : 0,
   );
   const [del, isDelOpen] = useState(false);
+
+  useEffect(() => {
+    const newQty = [...quantity];
+    console.log('this quantity');
+    console.log(newQty);
+    newQty[index] = count;
+    setQuantity(newQty);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [count, index]);
 
   useEffect(() => {
     // updateSet(index, data.detail_id, count, price);
@@ -37,7 +54,7 @@ export default function BookingCard({item = {}, updateSet}) {
   };
 
   const deleteCart = () => {
-    console.log(data.detail_id);
+    delCart(data.id, data.name, data.color_name);
   };
 
   return (
@@ -45,7 +62,7 @@ export default function BookingCard({item = {}, updateSet}) {
       <Card style={cardStyle.parent}>
         <Image
           source={{
-            uri: data.product_image,
+            uri: process.env.EXPO_API_URL + data.product_image_1,
           }}
           style={cardStyle.image}
         />
@@ -57,7 +74,7 @@ export default function BookingCard({item = {}, updateSet}) {
         ) : null}
         <View style={cardStyle.productDetail}>
           <View style={cardStyle.spreadWrap}>
-            <Text style={cardStyle.title}>{'New'}</Text>
+            <Text style={cardStyle.title}>{data.name}</Text>
             <TouchableOpacity onPress={openDel} style={cardStyle.ellipsis}>
               <FontAwesome name={'ellipsis-v'} color={'#5A6868'} size={16} />
             </TouchableOpacity>
@@ -68,19 +85,25 @@ export default function BookingCard({item = {}, updateSet}) {
               <Text style={cardStyle.key}>Color: </Text>
               <Text style={cardStyle.value}>{data.color_name}</Text>
             </View>
-            {data.size ? (
-              <View style={cardStyle.detailWrap}>
-                <Text style={cardStyle.key}>Size: </Text>
-                <Text style={cardStyle.value}>{data.size}</Text>
-              </View>
-            ) : null}
+          </View>
+
+          <View style={cardStyle.detailCont}>
+            <View style={cardStyle.detailWrap}>
+              <Text style={cardStyle.key}>Store: </Text>
+              <Text
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={cardStyle.valueStore}>
+                {data.store_name}
+              </Text>
+            </View>
           </View>
 
           <View style={cardStyle.spreadWrap}>
             <View style={cardStyle.btnWrap}>
               <TouchableOpacity
                 style={cardStyle.btn}
-                disabled={!count}
+                disabled={count <= 1}
                 onPress={decrease}>
                 <Text style={cardStyle.btnTxt}>-</Text>
               </TouchableOpacity>
@@ -131,7 +154,7 @@ const cardStyle = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     position: 'relative',
-    height: 105,
+    height: 120,
   },
   delete: {
     position: 'absolute',
@@ -178,8 +201,10 @@ const cardStyle = StyleSheet.create({
     fontWeight: 'bold',
   },
   image: {
+    borderBottomLeftRadius: 8,
+    borderTopLeftRadius: 8,
     width: 105,
-    height: 105,
+    height: 120,
   },
   detailCont: {
     flexDirection: 'row',
@@ -197,6 +222,13 @@ const cardStyle = StyleSheet.create({
     color: '#5A6868',
   },
   value: {
+    fontSize: 12,
+    color: '#102526',
+    fontWeight: 'bold',
+    marginLeft: 2,
+  },
+  valueStore: {
+    flex: 1,
     fontSize: 12,
     color: '#102526',
     fontWeight: 'bold',

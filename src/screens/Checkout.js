@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {Button, CheckBox} from 'native-base';
 import React from 'react';
 import {View, Text, StyleSheet, ScrollView} from 'react-native';
@@ -124,6 +125,35 @@ export default function Main() {
   const [paymentMethod, setPaymentMethod] = React.useState('later');
   const [checkedPayment, setCheckedPayment] = React.useState(false);
   const {prices, delivery_fees, total} = bookingSummary;
+  const [deliveryFeeInput, setDeliveryFeeInput] = React.useState([{}]);
+  const [deliveryFee, setDeliveryFee] = React.useState([{}]);
+
+  React.useEffect(() => {
+    if (bookingDetail.length && !deliveryFee.length) {
+      const valueDelivery = bookingDetail.map(() => ({}));
+      const delivFee = bookingDetail.map((item) => {
+        const {seller_id, items} = item;
+        const itemdetails_id = [];
+        const quantity = [];
+        items.forEach((element) => {
+          const {item_detail} = element;
+          item_detail.forEach((elItemDetail) => {
+            const {item_detail_id, quantity: quantityDetail} = elItemDetail;
+            itemdetails_id.push(item_detail_id);
+            quantity.push(quantityDetail);
+          });
+        });
+        item = {
+          seller_id,
+          itemdetails_id,
+          quantity,
+        };
+        return item;
+      });
+      setDeliveryFeeInput(delivFee);
+      setDeliveryFee(valueDelivery);
+    }
+  }, [bookingDetail]);
 
   const goToSelectAddress = () => {
     console.log('select address');
@@ -146,6 +176,10 @@ export default function Main() {
   return (
     <View style={styles.parent}>
       <ScrollView style={styles.parentWrapper}>
+        <View style={styles.titleContainer}>
+          <Text style={styles.mainTitle}>Checkout</Text>
+        </View>
+
         <View style={styles.addressWrapper}>
           <View style={styles.titleWrapper}>
             <Text style={styles.title}>Shipping Address</Text>
@@ -220,10 +254,20 @@ const styles = StyleSheet.create({
     width: '100%',
     flex: 1,
     alignItems: 'center',
-    paddingTop: 50,
   },
   parentWrapper: {
     width: '100%',
+  },
+  titleContainer: {
+    marginTop: 50,
+    marginBottom: 10,
+    alignSelf: 'flex-start',
+    paddingHorizontal: '5%',
+  },
+  mainTitle: {
+    fontSize: 34,
+    fontWeight: 'bold',
+    color: '#102526',
   },
   addressWrapper: {
     width: '100%',
@@ -281,7 +325,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     zIndex: 2,
     bottom: 0,
-    height: '25%',
+    height: '22%',
     backgroundColor: '#EEE',
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,

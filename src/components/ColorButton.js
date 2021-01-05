@@ -28,6 +28,7 @@ const colorBtn = StyleSheet.create({
   },
   outerActive: {
     borderWidth: 1,
+    borderRadius: 30,
     borderColor: '#457373',
   },
   inner: {

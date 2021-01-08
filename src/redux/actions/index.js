@@ -5,6 +5,8 @@ import cartAction from './carts';
 import profileAction from './profile';
 import checkoutAction from './checkout';
 import addressAction from './address';
+import transactionAction from './transactions';
+import categoryAction from './category';
 
 export default {
   authAction,
@@ -14,4 +16,6 @@ export default {
   profileAction,
   checkoutAction,
   addressAction,
+  transactionAction,
+  categoryAction,
 };

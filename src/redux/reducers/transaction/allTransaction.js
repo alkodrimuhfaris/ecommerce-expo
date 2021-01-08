@@ -41,5 +41,40 @@ export default (state = initialState, action) => {
         pageInfo: action.payload.data.pageInfo,
       };
     }
+    case 'SCROLL_TRANSACTION_PENDING': {
+      return {
+        ...state,
+        pending: true,
+        success: false,
+        error: false,
+        message: 'Getting transaction...',
+      };
+    }
+    case 'SCROLL_TRANSACTION_REJECTED': {
+      return {
+        ...state,
+        pending: false,
+        success: false,
+        error: true,
+        message: 'Get transaction data rejected',
+      };
+    }
+    case 'SCROLL_TRANSACTION_FULFILLED': {
+      return {
+        ...state,
+        pending: false,
+        success: true,
+        error: false,
+        message: 'Get transaction data fulfilled',
+        transactions: [...state.transactions, ...action.payload.data.results],
+        pageInfo: action.payload.data.pageInfo,
+      };
+    }
+    case 'AUTH_USER_LOGOUT': {
+      return {
+        ...state,
+        ...initialState,
+      };
+    }
   }
 };

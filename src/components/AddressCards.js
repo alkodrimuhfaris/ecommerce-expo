@@ -1,11 +1,14 @@
 import React from 'react';
+import {useNavigation} from '@react-navigation/native';
 import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 
 export default function AddressCards({
   item,
   selected = 0,
+  checkout = false,
   changeAddress = () => {},
 }) {
+  const navigation = useNavigation();
   const {item: detailAddress} = item;
   const {
     id,
@@ -15,58 +18,73 @@ export default function AddressCards({
     city_type,
     address,
   } = detailAddress;
-  console.log(selected);
 
   const goToChange = () => {
-    changeAddress(id);
+    if (checkout) {
+      navigation.navigate('AddressStack', {
+        screen: 'SelectAddress',
+        params: {selectCheckout: true},
+      });
+    } else {
+      navigation.navigate('AddressStack', {
+        screen: 'UpdateAddress',
+        params: {id},
+      });
+    }
   };
 
   return (
-    <View style={!selected ? addressStyle.card : addressStyle.cardSelect}>
-      <View style={addressStyle.nameWrap}>
-        <Text style={!selected ? addressStyle.name : addressStyle.nameSelect}>
-          {address_name}
+    <View style={addressStyle.parent}>
+      <View
+        style={[addressStyle.card, selected ? addressStyle.cardSelect : null]}>
+        <View style={addressStyle.nameWrap}>
+          <Text style={!selected ? addressStyle.name : addressStyle.nameSelect}>
+            {address_name}
+          </Text>
+          <TouchableOpacity onPress={goToChange}>
+            <Text
+              style={
+                !selected ? addressStyle.change : addressStyle.changeSelect
+              }>
+              Change
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Text
+          style={!selected ? addressStyle.address : addressStyle.addressSelect}
+          numberOfLines={2}>
+          {address + ', ' + city_type + ' ' + city}
         </Text>
-        <TouchableOpacity onPress={goToChange}>
-          <Text
-            style={!selected ? addressStyle.change : addressStyle.changeSelect}>
-            Change
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <Text
-        style={!selected ? addressStyle.address : addressStyle.addressSelect}
-        numberOfLines={2}>
-        {address + ', ' + city_type + ' ' + city}
-      </Text>
-      <View style={addressStyle.primaryWrapper}>
-        {primary_address ? (
-          <Text
-            style={
-              !selected ? addressStyle.primary : addressStyle.primarySelected
-            }>
-            {primary_address ? 'primary address' : null}
-          </Text>
-        ) : null}
+        <View style={addressStyle.primaryWrapper}>
+          {primary_address ? (
+            <Text
+              style={
+                !selected ? addressStyle.primary : addressStyle.primarySelected
+              }>
+              {primary_address ? 'primary address' : null}
+            </Text>
+          ) : null}
+        </View>
       </View>
     </View>
   );
 }
 
 const addressStyle = StyleSheet.create({
-  card: {
+  parent: {
     width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    width: '90%',
     flex: 1,
     elevation: 3,
     borderRadius: 8,
     padding: 28,
+    backgroundColor: 'white',
   },
   cardSelect: {
-    width: '100%',
-    flex: 1,
-    elevation: 3,
-    borderRadius: 8,
-    padding: 28,
     backgroundColor: '#457373',
   },
   container: {

@@ -1,8 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import {Text, FlatList, StyleSheet, View} from 'react-native';
 import {Container, Button} from 'native-base';
 import CategoryCard from '../components/CategoryCard';
 import {useNavigation} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+import actions from '../redux/actions/index';
+import queryExtractor from '../helpers/queryExtractor';
 
 const data = [
   {
@@ -25,19 +29,41 @@ const data = [
 
 export default function Categories() {
   const navigation = useNavigation();
-  const categoriesData = data;
+  const dispatch = useDispatch();
+  const categoriesData = useSelector((state) => state.getCategory.data);
+  const pageInfo = useSelector((state) => state.getCategory.pageInfo);
   const [categorySelect, setCategory] = React.useState(0);
+  const [refresh, setRefresh] = React.useState(false);
+
+  React.useEffect(() => {
+    dispatch(actions.categoryAction.getCategories());
+  }, []);
+
+  const doRefresh = () => {
+    setRefresh(true);
+    dispatch(actions.categoryAction.getCategories());
+    setRefresh(false);
+  };
 
   const selectCategory = (id, name) => {
-    navigation.navigate('AllProduct', {title: name, id});
+    navigation.navigate('AllProductStack', {
+      screen: 'AllProduct',
+      params: {title: name, categoryId: id, categoryDetail: true},
+    });
   };
 
   function nextPage() {
-    console.log('next');
+    const nextQuery = queryExtractor(pageInfo);
+    if (nextQuery) {
+      dispatch(actions.categoryAction.scrollCategories(nextQuery));
+    }
   }
 
   const goToAllItem = () => {
-    navigation.navigate('AllProduct', {title: 'All item'});
+    navigation.navigate('AllProductStack', {
+      screen: 'AllProduct',
+      params: {title: 'All item', allItem: true},
+    });
   };
 
   return (
@@ -52,6 +78,8 @@ export default function Categories() {
       <View style={styles.viewScroll}>
         <FlatList
           data={categoriesData.length ? categoriesData : []}
+          refreshing={refresh}
+          onRefresh={doRefresh}
           onEndReached={nextPage}
           onEndReachedTreshold={0.5}
           renderItem={(item) => {

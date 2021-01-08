@@ -57,13 +57,13 @@ export default function ContentProduct({
               style={bodyStyles.titleTxt}
               ellipsizeMode={'tail'}
               numberOfLines={2}>
-              {dataItem.store_name}
+              {dataItem.name}
             </Text>
             <Text
               style={bodyStyles.product}
               ellipsizeMode={'tail'}
               numberOfLines={2}>
-              {dataItem.name}
+              {dataItem.store_name}
             </Text>
           </View>
           <View style={bodyStyles.priceWrapper}>
@@ -112,6 +112,7 @@ const bodyStyles = StyleSheet.create({
     borderTopRightRadius: 10,
     borderTopLeftRadius: 10,
     flex: 1,
+    backgroundColor: 'white',
   },
   colorIndividu: {
     borderRadius: 50,

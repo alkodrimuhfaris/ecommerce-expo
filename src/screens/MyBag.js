@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, FlatList} from 'react-native';
+import {View, Text, StyleSheet, ImageBackground, FlatList} from 'react-native';
 import {Button} from 'native-base';
 import {useSelector, useDispatch} from 'react-redux';
 import currencyFormat from '../helpers/currencyFormat';
@@ -8,14 +8,18 @@ import BookingCard from '../components/BookingCard';
 import actions from '../redux/actions/index';
 import ModalLoading from '../components/ModalLoading';
 import ModalAlert from '../components/ModalAlert';
+import loginFirst from '../assets/homePhotos/loginFirst.jpg';
 import {useNavigation} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 
 export default function MyBag() {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const {cartAction, checkoutAction} = actions;
   const [bookArray, setBookArray] = useState([]);
   const auth = useSelector((state) => state.auth);
+  const isLogin = useSelector((state) => state.auth.isLogin);
   const postCart = useSelector((state) => state.postCart);
   const token = useSelector((state) => state.auth.token);
   const getCart = useSelector((state) => state.getCart);
@@ -34,67 +38,75 @@ export default function MyBag() {
 
   const [totalPrice, setTotalPrice] = useState(0);
 
+  const initialMount = React.useRef(true);
+
   // get data cart
   useEffect(() => {
-    dispatch(cartAction.getCart(token));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (isLogin) {
+      dispatch(cartAction.getCart(token));
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }
   }, [token, postCart]);
 
   // setting up quantity, item price, array of cart id, array of seller id for checkout
   useEffect(() => {
-    const {data} = getCart;
-    const qty = data.map((item) => {
-      item = item.quantity;
-      return item;
-    });
-    const itemPrice = data.map((item) => {
-      item = item.price;
-      return item;
-    });
-    const slrArr = [
-      ...new Set(
-        data.map((item) => {
-          item = item.seller_id;
-          return item;
-        }),
-      ),
-    ];
-    const courierArr = sellerArr.map(() => '');
-    const serviceArr = sellerArr.map(() => 0);
-    const itemdetails_idArr = data.map((item) => {
-      item = item.itemdetails_id;
-      return item;
-    });
-    const checkoutDelArr = data.map((item) => {
-      item = {
-        id: item.id,
-      };
-      return item;
-    });
-    setQuantity(qty);
-    setPrice(itemPrice);
-    setSellerArr(slrArr);
-    setCouriers(courierArr);
-    setServices(serviceArr);
-    setItemdetails_id(itemdetails_idArr);
-    setCheckoutArr(checkoutDelArr);
-  }, [getCart.data]);
+    if (isLogin) {
+      const {data} = getCart;
+      const qty = data.map((item) => {
+        item = item.quantity;
+        return item;
+      });
+      const itemPrice = data.map((item) => {
+        item = item.price;
+        return item;
+      });
+      const slrArr = [
+        ...new Set(
+          data.map((item) => {
+            item = item.seller_id;
+            return item;
+          }),
+        ),
+      ];
+      const courierArr = sellerArr.map(() => '');
+      const serviceArr = sellerArr.map(() => 0);
+      const itemdetails_idArr = data.map((item) => {
+        item = item.itemdetails_id;
+        return item;
+      });
+      const checkoutDelArr = data.map((item) => {
+        item = {
+          id: item.id,
+        };
+        return item;
+      });
+      setQuantity(qty);
+      setPrice(itemPrice);
+      setSellerArr(slrArr);
+      setCouriers(courierArr);
+      setServices(serviceArr);
+      setItemdetails_id(itemdetails_idArr);
+      setCheckoutArr(checkoutDelArr);
+    }
+  }, [isLogin, getCart.data]);
 
   // change total price
   useEffect(() => {
-    let totPrice = 0;
-    if (quantity.length) {
-      totPrice = [...quantity]
-        .map((item, index) => {
-          item = item * price[index];
-          return item;
-        })
-        .reduce((a, b) => a + b);
+    if (isLogin) {
+      let totPrice = 0;
+      if (quantity.length) {
+        totPrice = [...quantity]
+          .map((item, index) => {
+            item = item * price[index];
+            return item;
+          })
+          .reduce((a, b) => a + b);
+      }
+      setTotalPrice(totPrice);
+      console.log(quantity);
+      console.log(price);
     }
-    setTotalPrice(totPrice);
-    console.log(quantity);
-    console.log(price);
-  }, [quantity, getCart.data]);
+  }, [isLogin, quantity, getCart.data]);
 
   function nextPage() {
     console.log('next');
@@ -117,30 +129,46 @@ export default function MyBag() {
   };
 
   useEffect(() => {
-    if (cartDelete.success) {
-      setPropsAlert({
-        content: 'Cart successfuly deleted!',
-        confirm: () => {
+    if (isLogin) {
+      if (isFocused) {
+        if (initialMount) {
+          initialMount.current = false;
           dispatch(cartAction.getCart(token));
           dispatch(cartAction.celarStateDelete());
-          setOpenAlert(false);
-        },
-        useOneBtn: true,
-      });
-      setOpenAlert(true);
-    } else if (cartDelete.error) {
-      setPropsAlert({
-        content: cartDelete.message,
-        confirm: () => {
+        } else {
+          if (cartDelete.success) {
+            setPropsAlert({
+              content: 'Cart successfuly deleted!',
+              confirm: () => {
+                dispatch(cartAction.getCart(token));
+                dispatch(cartAction.celarStateDelete());
+                setOpenAlert(false);
+              },
+              useOneBtn: true,
+            });
+            setOpenAlert(true);
+          } else if (cartDelete.error) {
+            setPropsAlert({
+              content: cartDelete.message,
+              confirm: () => {
+                dispatch(cartAction.getCart(token));
+                dispatch(cartAction.celarStateDelete());
+                setOpenAlert(false);
+              },
+              useOneBtn: true,
+            });
+            setOpenAlert(true);
+          }
+        }
+      } else {
+        initialMount.current = true;
+        if (cartDelete.success) {
           dispatch(cartAction.getCart(token));
           dispatch(cartAction.celarStateDelete());
-          setOpenAlert(false);
-        },
-        useOneBtn: true,
-      });
-      setOpenAlert(true);
+        }
+      }
     }
-  }, [cartDelete.pending]);
+  }, [isFocused, isLogin, cartDelete.pending]);
 
   const checkout = () => {
     const data = {
@@ -152,7 +180,7 @@ export default function MyBag() {
     console.log(data);
     dispatch(cartAction.cartToCheckout(checkoutArr));
     dispatch(checkoutAction.addCheckoutData(data));
-    navigation.navigate('ProductStack', {screen: 'Checkout'});
+    navigation.navigate('CheckoutStack', {screen: 'Checkout'});
   };
 
   return (
@@ -171,6 +199,7 @@ export default function MyBag() {
                 data={Object.keys(getCart.data).length > 0 && getCart.data}
                 showsVerticalScrollIndicator={false}
                 onEndReached={nextPage}
+                keyExtractor={(item) => item.index}
                 onEndReachedTreshold={0.5}
                 renderItem={(item) => {
                   return (
@@ -208,11 +237,22 @@ export default function MyBag() {
           </View>
         </>
       ) : (
-        <>
+        <ImageBackground source={loginFirst} style={styles.loginContainer}>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>Login to see content</Text>
+            <Text style={styles.titleLogin}>Login to see content</Text>
           </View>
-        </>
+          <View style={styles.loginFooter}>
+            <View style={styles.parentBtn}>
+              <Button
+                onPress={() =>
+                  navigation.navigate('AuthStack', {screen: 'Login'})
+                }
+                style={styles.btn}>
+                <Text style={styles.btnTxt}>Login</Text>
+              </Button>
+            </View>
+          </View>
+        </ImageBackground>
       )}
     </View>
   );
@@ -230,6 +270,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#102526',
   },
+  titleLogin: {
+    fontSize: 34,
+    fontWeight: 'bold',
+    color: 'white',
+    position: 'relative',
+  },
   viewScroll: {
     height: '65%',
     width: '100%',
@@ -239,11 +285,16 @@ const styles = StyleSheet.create({
   wrapper: {
     paddingHorizontal: '5%',
   },
+  loginContainer: {
+    height: '100%',
+    width: '100%',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     width: '100%',
     alignItems: 'center',
-    backgroundColor: '#E5e5e5',
+    backgroundColor: 'white',
   },
   text: {
     marginTop: 10,
@@ -258,6 +309,18 @@ const styles = StyleSheet.create({
   noTopMargin: {
     marginTop: 5,
     marginBottom: 5,
+  },
+  loginFooter: {
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    backgroundColor: 'white',
+    bottom: 0,
+    position: 'absolute',
+    height: '10%',
+    width: '100%',
+    justifyContent: 'center',
+    paddingLeft: '5%',
+    paddingRight: '5%',
   },
   footer: {
     borderTopLeftRadius: 8,

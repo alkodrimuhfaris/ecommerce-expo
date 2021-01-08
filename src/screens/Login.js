@@ -175,11 +175,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#E5E5E5',
+    backgroundColor: 'white',
   },
   form: {
     width: '80%',
-    backgroundColor: '#E5E5E5',
   },
   forgot: {
     marginRight: 10,

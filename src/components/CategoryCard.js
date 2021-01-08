@@ -1,6 +1,7 @@
 import React from 'react';
 import {Text, Image, TouchableOpacity, StyleSheet} from 'react-native';
 import {Card} from 'native-base';
+import categoryImage from '../assets/icons/category.png';
 
 const {EXPO_API_URL} = process.env;
 
@@ -17,9 +18,13 @@ export default function CategoryCard({item, selectCategory}) {
       <Card style={cardStyle.parent}>
         <Text style={cardStyle.text}>{name}</Text>
         <Image
-          source={{
-            uri: EXPO_API_URL + categories_image,
-          }}
+          source={
+            categories_image
+              ? {
+                  uri: EXPO_API_URL + categories_image,
+                }
+              : categoryImage
+          }
           style={cardStyle.image}
         />
       </Card>

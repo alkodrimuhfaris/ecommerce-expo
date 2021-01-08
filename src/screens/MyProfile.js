@@ -4,10 +4,10 @@ import {
   View,
   StyleSheet,
   Image,
-  ScrollView,
   TouchableOpacity,
+  FlatList,
 } from 'react-native';
-import {Container} from 'native-base';
+import {Button} from 'native-base';
 // import {TouchableOpacity} from 'react-native-gesture-handler';
 import {FontAwesome} from '@expo/vector-icons';
 import {useSelector, useDispatch} from 'react-redux';
@@ -21,6 +21,7 @@ import ModalCenter from '../components/ModalCenter';
 import ContentSelector from '../components/ContentSelector';
 import * as ImagePicker from 'expo-image-picker';
 import uploadAvaHandler from '../helpers/uploadAvaHandler';
+import currencyFormat from '../helpers/currencyFormat';
 
 function ProfileOpt(props) {
   return (
@@ -74,6 +75,9 @@ export default function App() {
   );
   const updateProfile = useSelector((state) => state.updateProfile);
   const userData = useSelector((state) => state.getProfile.userData);
+  const getAddress = useSelector((state) => state.getAddress);
+  const allTransaction = useSelector((state) => state.allTransaction);
+
   const navigation = useNavigation();
   const [propsAlert, setPropsAlert] = useState({});
   const [openAlert, setOpenAlert] = useState(false);
@@ -83,17 +87,46 @@ export default function App() {
     'Open Galery',
     'Open Camera',
   ]);
+  const [refreshing, setRefreshing] = React.useState(false);
+  const loggedOut = React.useRef(false);
 
   React.useEffect(() => {
-    dispatch(profileAction.getProfile(token));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-
-  React.useEffect(() => {
-    if (userData.avatar) {
-      setSelectOption(['Open Galery', 'Open Camera', 'Delete Avatar']);
+    if (auth.isLogin) {
+      if (!getAddress.pageInfo.currentPage) {
+        dispatch(actions.addressAction.getAddress(token));
+      }
+      if (!allTransaction.pageInfo.currentPage) {
+        dispatch(
+          actions.transactionAction.getAllTransaction(token, {
+            page: 1,
+            limit: '-',
+          }),
+        );
+      }
     }
-  }, [userData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.isLogin]);
+
+  React.useEffect(() => {
+    if (auth.isLogin) {
+      dispatch(profileAction.getProfile(token));
+    } else if (!auth.isLogin && loggedOut) {
+      loggedOut.current = false;
+      navigation.navigate('AuthStack', {screen: 'Login'});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.isLogin, token]);
+
+  React.useEffect(() => {
+    if (auth.isLogin) {
+      if (userData.avatar) {
+        setAvatar(process.env.EXPO_API_URL + userData.avatar);
+        setSelectOption(['Open Galery', 'Open Camera', 'Delete Avatar']);
+      } else if (!userData.avatar) {
+        setSelectOption(['Open Galery', 'Open Camera']);
+      }
+    }
+  }, [auth.isLogin, userData]);
 
   const arrayOpt = (orderCount = 0, addressCount = 0) => {
     return [
@@ -103,13 +136,13 @@ export default function App() {
           ? `Already have ${orderCount} orders`
           : "Doesn't have any order yet",
         action: () => {
-          navigation.navigate('ProfileStack', {screen: 'MyOrder'});
+          navigation.navigate('TransactionStack', {screen: 'MyOrder'});
         },
       },
       {
         title: 'Shipping Address',
         subtitle: addressCount
-          ? `${addressCount} address`
+          ? `Found ${addressCount} address`
           : "Doesn't add any address yet",
         action: () => {
           navigation.navigate('AddressStack', {screen: 'SelectAddress'});
@@ -131,9 +164,9 @@ export default function App() {
             content: 'Are you sure want to logout?',
             confirmText: 'Yes',
             confirm: () => {
+              loggedOut.current = true;
               dispatch(authAction.logout());
               setOpenAlert(false);
-              navigation.navigate('AuthStack', {screen: 'Login'});
             },
             discard: () => {
               setOpenAlert(false);
@@ -188,12 +221,31 @@ export default function App() {
       );
     } else if (index === 2) {
       if (avatar || userData.avatar) {
-        setAvatar('');
-        dispatch(profileAction.deleteAvatar(token));
+        setPropsAlert({
+          content: 'Are you sure want to delete your avatar?',
+          confirm: () => {
+            setAvatar('');
+            setSelectOption(['Open Galery', 'Open Camera']);
+            dispatch(profileAction.deleteAvatar(token));
+            setOpenAlert(false);
+          },
+          confirmText: 'Yes',
+          discard: () => {
+            setOpenAlert(false);
+          },
+        });
+        setOpenAlert(true);
       }
     }
     setModalOption(false);
   };
+
+  useEffect(() => {
+    if (updateProfile.success) {
+      dispatch(profileAction.getProfile(token));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateProfile.pending]);
 
   useEffect(() => {
     if (deleteAvatar.success) {
@@ -223,10 +275,27 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deleteAvatar.pending]);
 
-  const items = auth.isLogin ? arrayOpt() : arrayNewUser;
+  const items = auth.isLogin
+    ? arrayOpt(allTransaction.pageInfo.count, getAddress.pageInfo.count)
+    : arrayNewUser;
+
+  const doRefresh = () => {
+    if (auth.isLogin) {
+      setRefreshing(true);
+      dispatch(profileAction.getProfile(token));
+      dispatch(actions.addressAction.getAddress(token));
+      dispatch(
+        actions.transactionAction.getAllTransaction(token, {
+          page: 1,
+          limit: '-',
+        }),
+      );
+      setRefreshing(false);
+    }
+  };
 
   return (
-    <View>
+    <View style={styles.parent}>
       {/* select camera or gallery */}
       <ModalCenter
         modalOpen={modalOption}
@@ -247,13 +316,7 @@ export default function App() {
               onPress={() => setModalOption(true)}
               style={styles.avaWrapper}>
               <Image
-                source={
-                  avatar
-                    ? {uri: avatar}
-                    : userData.ava
-                    ? {uri: process.env.EXPO_API_URL + userData.ava}
-                    : placeHolder
-                }
+                source={avatar ? {uri: avatar} : placeHolder}
                 style={styles.avatar}
               />
               <View style={styles.iconWrapper}>
@@ -272,22 +335,52 @@ export default function App() {
             </Text>
           </View>
         </View>
-      </View>
-
-      <ScrollView style={styles.profileOpt}>
-        {items.map((item, index) => (
-          <View
-            key={index}
-            style={index < items.length ? styles.opt : styles.lastOpt}>
-            <ProfileOpt item={item} />
+        {auth.isLogin ? (
+          <View style={styles.balanceContainer}>
+            <View style={styles.balanceWrapper}>
+              <View style={styles.balance}>
+                <Text style={styles.keyBalance}>Tuku Balance:</Text>
+                <Text style={styles.keyValue}>
+                  {currencyFormat(userData.balance)}
+                </Text>
+              </View>
+              <View style={styles.buttonTopUpWrapper}>
+                <Button
+                  onPress={() =>
+                    navigation.navigate('TransactionStack', {screen: 'TopUp'})
+                  }
+                  style={styles.btnTopUp}>
+                  <Text style={styles.btnTopUpTxt}>Topup!</Text>
+                </Button>
+              </View>
+            </View>
           </View>
-        ))}
-      </ScrollView>
+        ) : null}
+      </View>
+      <View style={styles.profileOpt}>
+        <FlatList
+          data={items}
+          refreshing={refreshing}
+          onRefresh={doRefresh}
+          keyExtractor={(item) => item.index}
+          renderItem={({item, index}) => {
+            return (
+              <View style={index < items.length ? styles.opt : styles.lastOpt}>
+                <ProfileOpt item={item} />
+              </View>
+            );
+          }}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  parent: {
+    backgroundColor: 'white',
+    flex: 1,
+  },
   opt: {
     borderBottomWidth: 1,
     borderBottomColor: '#5A6868',
@@ -295,12 +388,56 @@ const styles = StyleSheet.create({
   lastOpt: {
     borderBottomWidth: 0,
   },
+  balanceContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  balanceWrapper: {
+    flexDirection: 'row',
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#457373',
+    backgroundColor: '#457373',
+    elevation: 3,
+    width: '80%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  balance: {
+    width: '70%',
+  },
+  keyBalance: {
+    color: 'white',
+  },
+  keyValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  buttonTopUpWrapper: {
+    width: '30%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  btnTopUp: {
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#9B8148',
+    elevation: 3,
+  },
+  btnTopUpTxt: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
   profileOpt: {
     marginTop: 5,
   },
   container: {
     paddingRight: '5%',
     paddingLeft: '5%',
+    backgroundColor: 'white',
   },
   title: {
     marginTop: 50,

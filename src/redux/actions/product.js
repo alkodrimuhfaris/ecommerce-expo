@@ -28,4 +28,12 @@ export default {
     type: 'GET_DETAIL_COLOR_PRODUCT',
     payload: services().get('public/products/detail/' + detailItemId),
   }),
+  searchItem: (query) => ({
+    type: 'SEARCH_ITEM',
+    payload: services().get(`/public/products?${qs.stringify(query)}`),
+  }),
+  scrollSearchItem: (nextQuery = '') => ({
+    type: 'SCROLL_SEARCH_ITEM',
+    payload: services().get(`/public/products?${nextQuery}`),
+  }),
 };

@@ -19,44 +19,54 @@ export default function OrderCard({item, idSelect}) {
   };
 
   return (
-    <TouchableOpacity onPress={goToId} style={orderStyle.card}>
-      <View style={orderStyle.wrapperCard}>
-        <Text style={orderStyle.date}>
-          {moment(created_at).format('MMM DD, YYYY')}
-        </Text>
-        <View style={orderStyle.invoiceWrap}>
-          <Text style={orderStyle.invoice} numberOfLines={1}>
-            Invoice: {invoice}
+    <View style={orderStyle.parent}>
+      <TouchableOpacity onPress={goToId} style={orderStyle.card}>
+        <View style={orderStyle.wrapperCard}>
+          <Text style={orderStyle.date}>
+            {moment(created_at).format('MMM DD, YYYY')}
           </Text>
+          <View style={orderStyle.invoiceWrap}>
+            <Text style={orderStyle.invoice} numberOfLines={1}>
+              Invoice: {invoice}
+            </Text>
+          </View>
+          {/* <View style={orderStyle.subWrapper}>
+            <Text style={orderStyle.key}>Tracking Number:</Text>
+            <Text style={orderStyle.value}>{'#'}</Text>
+          </View> */}
+          <View style={orderStyle.subWrapper}>
+            <Text style={orderStyle.key}>Total Price:</Text>
+            <Text style={orderStyle.value}>{currencyFormat(items_price)}</Text>
+          </View>
+          <View style={orderStyle.subWrapper}>
+            <Text style={orderStyle.key}>Delivery fee:</Text>
+            <Text style={orderStyle.value}>{currencyFormat(delivery_fee)}</Text>
+          </View>
+          <View style={orderStyle.deliveredWrap}>
+            <Text style={status ? orderStyle.paid : orderStyle.notPaid}>
+              {status ? 'Paid' : 'Not Paid'}
+            </Text>
+          </View>
         </View>
-        {/* <View style={orderStyle.subWrapper}>
-          <Text style={orderStyle.key}>Tracking Number:</Text>
-          <Text style={orderStyle.value}>{'#'}</Text>
-        </View> */}
-        <View style={orderStyle.subWrapper}>
-          <Text style={orderStyle.key}>Total Price:</Text>
-          <Text style={orderStyle.value}>{currencyFormat(items_price)}</Text>
-        </View>
-        <View style={orderStyle.subWrapper}>
-          <Text style={orderStyle.key}>Delivery fee:</Text>
-          <Text style={orderStyle.value}>{currencyFormat(delivery_fee)}</Text>
-        </View>
-        <View style={orderStyle.deliveredWrap}>
-          <Text style={status ? orderStyle.paid : orderStyle.notPaid}>
-            {status ? 'Paid' : 'Not Paid'}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const orderStyle = StyleSheet.create({
+  parent: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+    justifyContent: 'center',
+  },
   card: {
+    width: '90%',
     elevation: 3,
     borderRadius: 8,
     padding: 28,
-    marginVertical: 10,
+    backgroundColor: 'white',
   },
   wrapperCard: {
     width: '100%',

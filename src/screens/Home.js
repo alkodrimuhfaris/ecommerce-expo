@@ -15,18 +15,19 @@ import productActions from '../redux/actions/product';
 
 export default function Home() {
   const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
 
   React.useEffect(() => {
     dispatch(productActions.getNewItems());
     dispatch(productActions.getPopularItems());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [auth.isLogin]);
 
   const newProduct = useSelector((state) => state.product.newProducts);
   const popularProduct = useSelector((state) => state.product.popularProducts);
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.parent}>
       <ScrollView vertical>
         <Header />
 
@@ -80,6 +81,9 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+  parent: {
+    backgroundColor: 'white',
+  },
   rightMargin: {
     marginRight: 4,
   },

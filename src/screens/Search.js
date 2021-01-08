@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {Text, View, StyleSheet} from 'react-native';
-import {Container, Button, Input} from 'native-base';
-import {FontAwesome} from '@expo/vector-icons'
+import {Container, Button, Form, Input} from 'native-base';
+import {FontAwesome} from '@expo/vector-icons';
 
 function ButtonSuggestion() {
   return (
@@ -11,27 +11,40 @@ function ButtonSuggestion() {
   );
 }
 
-export default function Search() {
+export default function Search({navigation}) {
   const [search, setSearch] = useState('');
+
+  const goSearch = () => {
+    navigation.navigate('AllProductStack', {
+      screen: 'AllProduct',
+      params: {
+        title: 'Search for: ' + search,
+        search,
+      },
+    });
+  };
 
   return (
     <Container style={styles.container}>
-      <View style={styles.inputWrapper}>
-        <Input
-          rounded
-          style={styles.input}
-          placeholder={'Search'}
-          placeholderTextColor={'#DADADA'}
-          value={search}
-          onChangeText={(e) => setSearch(e)}
-        />
-        <FontAwesome
-          style={styles.iconSearch}
-          name="search"
-          color={'#DADADA'}
-          size={16}
-        />
-      </View>
+      <Form>
+        <View style={styles.inputWrapper}>
+          <Input
+            rounded
+            style={styles.input}
+            placeholder={'Search'}
+            placeholderTextColor={'#DADADA'}
+            value={search}
+            onSubmitEditing={goSearch}
+            onChangeText={(e) => setSearch(e)}
+          />
+          <FontAwesome
+            style={styles.iconSearch}
+            name="search"
+            color={'#DADADA'}
+            size={16}
+          />
+        </View>
+      </Form>
 
       <Text style={styles.text}>Popular Search</Text>
 
@@ -50,17 +63,18 @@ const styles = StyleSheet.create({
     paddingLeft: '2%',
   },
   inputWrapper: {
-    marginTop: 30,
     height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
   },
   input: {
     borderColor: '#102526',
+    borderWidth: 1,
     paddingLeft: 40,
     borderRadius: 30,
     width: '100%',
     height: 40,
-    elevation: 4,
   },
   iconSearch: {
     position: 'absolute',

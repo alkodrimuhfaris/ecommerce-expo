@@ -1,133 +1,78 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {Button, CheckBox} from 'native-base';
 import React from 'react';
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  FlatList,
+  Image,
+} from 'react-native';
 import currencyFormat from '../helpers/currencyFormat';
 import AddressCards from '../components/AddressCards';
 import {FontAwesome5} from '@expo/vector-icons';
 import CheckoutCard from '../components/CheckoutCard';
-
-const data = [
-  {
-    id: 2,
-    user_id: 3,
-    address_name: 'Home',
-    primary_address: 1,
-    recipient_name: 'Marzuki',
-    phone: '089633449007',
-    city: 'Tangerang',
-    city_type: 'Kota',
-    province_id: 3,
-    city_id: 456,
-    address: 'Gang H. Samir No 76 B, Karang Timur, Karang Tengah, Tangerang',
-    postal_code: 14321,
-    maps_pin_point: null,
-    created_at: '2020-10-30T01:29:18.000Z',
-    updated_at: '2020-11-18T01:32:33.000Z',
-  },
-];
-
-const bookingData = {
-  bookingSummary: {
-    prices: 1850000,
-    delivery_fees: 93000,
-    total: 1943000,
-  },
-  bookingDetail: [
-    {
-      seller_id: 2,
-      weight: 4100,
-      store_name: 'Arsenal Clothes',
-      origin: 327,
-      destination: 456,
-      total_price: 1550000,
-      delivery_fee: 76000,
-      courier: 'jne',
-      service_name: 'REG',
-      items: [
-        {
-          item_id: 1,
-          name: "Illi London Woman's Maxi Dress",
-          product_image: 'Uploads/2-product_image-1603966940378.jpg',
-          item_price: 1050000,
-          item_detail: [
-            {
-              item_detail_id: 1,
-              color_name: 'black',
-              price: 300000,
-              quantity: 2,
-            },
-            {
-              item_detail_id: 2,
-              color_name: 'pista',
-              price: 300000,
-              quantity: 2,
-            },
-            {
-              item_detail_id: 3,
-              color_name: 'pink',
-              price: 450000,
-              quantity: 3,
-            },
-          ],
-        },
-        {
-          item_id: 3,
-          name: 'Kemeja Pria SlimFit Lengan Panjang Warna Peach Oxford',
-          product_image: 'Uploads/2-product_image-1605664700755.jpeg',
-          item_price: 500000,
-          item_detail: [
-            {
-              item_detail_id: 9,
-              color_name: 'maroon',
-              price: 500000,
-              quantity: 2,
-            },
-          ],
-        },
-      ],
-    },
-    {
-      seller_id: 6,
-      weight: 800,
-      store_name: 'Gamis Mutiara',
-      origin: 419,
-      destination: 456,
-      total_price: 300000,
-      delivery_fee: 17000,
-      courier: 'jne',
-      service_name: 'REG',
-      items: [
-        {
-          item_id: 2,
-          name: 'BAJU GAMIS WANITA IH ARAFAH',
-          product_image: 'Uploads/6-product_image-1605658350242.jpeg',
-          item_price: 300000,
-          item_detail: [
-            {
-              item_detail_id: 5,
-              color_name: 'black',
-              price: 300000,
-              quantity: 2,
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+import {useSelector, useDispatch} from 'react-redux';
+import actions from '../redux/actions/index';
+import tukuIcon from '../assets/icons/tukuIcon.png';
+import ModalLoading from '../components/ModalLoading';
+import {useNavigation} from '@react-navigation/native';
+import ModalAlert from '../components/ModalAlert';
 
 export default function Main() {
-  const addressDetail = data;
-  const bookingDatas = bookingData;
-  const {bookingSummary, bookingDetail} = bookingDatas;
-  const [detailAddress] = addressDetail;
-  const [paymentMethod, setPaymentMethod] = React.useState('later');
-  const [checkedPayment, setCheckedPayment] = React.useState(false);
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const address_id = useSelector((state) => state.selectAddress.address_id);
+  const detailAddress = useSelector(
+    (state) => state.selectAddress.addressDetail,
+  );
+  const getAddress = useSelector((state) => state.getAddress);
+  const checkoutData = useSelector((state) => state.checkoutData);
+  const token = useSelector((state) => state.auth.token);
+  const bookingSummary = useSelector(
+    (state) => state.getCheckout.bookingSummary,
+  );
+  const bookingDetail = useSelector((state) => state.getCheckout.bookingDetail);
+  const getCheckout = useSelector((state) => state.getCheckout);
+  const deliveryOption = useSelector((state) => state.deliveryFees.data);
+  const processPayment = useSelector((state) => state.processPayment);
+  const cartSelected = useSelector(
+    (state) => state.cartToCheckout.dataToDelete,
+  );
+  const userData = useSelector((state) => state.getProfile.userData);
+  const deliveryFee = useSelector(
+    (state) => state.setDeliveryServices.deliveryFee,
+  );
+
+  const [paymentSelected, setPaymentSelected] = React.useState(0);
   const {prices, delivery_fees, total} = bookingSummary;
   const [deliveryFeeInput, setDeliveryFeeInput] = React.useState([{}]);
-  const [deliveryFee, setDeliveryFee] = React.useState([{}]);
+  const [openNotif, setOpenNotif] = React.useState(false);
+  const [propsNotif, setPropsNotif] = React.useState({});
+  const isInitialMount = React.useRef(true);
+  const isInitialMount2 = React.useRef(true);
 
+  React.useEffect(() => {
+    if (Object.keys(userData).length) {
+      dispatch(actions.profileAction.getProfile(token));
+    }
+  }, []);
+
+  // automatically get checkout data
+  React.useEffect(() => {
+    const data = {...checkoutData};
+    const {quantity, itemdetails_id} = data;
+    if (quantity.length && itemdetails_id.length) {
+      if (address_id) {
+        Object.assign(data, {address_id});
+      }
+      dispatch(actions.checkoutAction.getCheckout(token, data));
+    }
+  }, [checkoutData]);
+
+  // creating delivery fee array conditioner
   React.useEffect(() => {
     if (bookingDetail.length && !deliveryFee.length) {
       const valueDelivery = bookingDetail.map(() => ({}));
@@ -151,82 +96,326 @@ export default function Main() {
         return item;
       });
       setDeliveryFeeInput(delivFee);
-      setDeliveryFee(valueDelivery);
+      dispatch(actions.checkoutAction.setDeliveryService(valueDelivery));
     }
   }, [bookingDetail]);
 
-  const goToSelectAddress = () => {
-    console.log('select address');
+  // get delivery fee but not when first mounting
+  React.useEffect(() => {
+    if (isInitialMount2.current) {
+      isInitialMount2.current = false;
+    } else {
+      if (deliveryFeeInput.length) {
+        dispatch(
+          actions.checkoutAction.getDeliveryFee(
+            token,
+            deliveryFeeInput,
+            address_id,
+          ),
+        );
+      }
+    }
+  }, [deliveryFeeInput, address_id]);
+
+  // automatically get checkout data
+  React.useEffect(() => {
+    const data = {...checkoutData};
+    const {quantity, itemdetails_id} = data;
+    if (quantity.length && itemdetails_id.length) {
+      if (address_id) {
+        Object.assign(data, {address_id});
+      }
+      dispatch(actions.checkoutAction.getCheckout(token, data));
+    }
+  }, [checkoutData]);
+
+  // function called just when update if selected address id
+  React.useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    } else {
+      const newDeliveryFee = [...deliveryFee].map(() => ({
+        value: '',
+        label: 'Choose one of delivery options bellow',
+      }));
+
+      dispatch(actions.checkoutAction.setDeliveryService(newDeliveryFee));
+      const {quantity, itemdetails_id} = checkoutData;
+      const dataAddressChange = {
+        quantity,
+        itemdetails_id,
+      };
+      if (quantity.length && itemdetails_id.length) {
+        if (address_id) {
+          Object.assign(dataAddressChange, {address_id});
+        }
+        dispatch(actions.checkoutAction.getCheckout(token, dataAddressChange));
+      }
+    }
+  }, [address_id]);
+
+  // get data address for the first time when element on mounting
+  React.useEffect(() => {
+    if (!getAddress.data.length) {
+      dispatch(actions.addressAction.getAddress(token));
+    }
+  }, [token]);
+
+  // set primary address as selected address when component mounting on the first time
+  React.useEffect(() => {
+    if (address_id === 0) {
+      if (
+        getAddress.success ||
+        (Object.keys(detailAddress).length && getAddress.data.length)
+      ) {
+        const primaryAddress = getAddress.data[0];
+        console.log(getAddress.data);
+        dispatch(actions.addressAction.selectAddress(primaryAddress));
+      }
+    }
+  }, [getAddress.pending]);
+
+  // set delivery fee and input of delivery fee when booking detail is changing
+  React.useEffect(() => {
+    if (bookingDetail.length && !deliveryFee.length) {
+      const valueDelivery = bookingDetail.map(() => ({}));
+      const delivFee = bookingDetail.map((item) => {
+        const {seller_id, items} = item;
+        const itemdetails_id = [];
+        const quantity = [];
+        items.forEach((element) => {
+          const {item_detail} = element;
+          item_detail.forEach((elItemDetail) => {
+            const {item_detail_id, quantity: quantityDetail} = elItemDetail;
+            itemdetails_id.push(item_detail_id);
+            quantity.push(quantityDetail);
+          });
+        });
+        item = {
+          seller_id,
+          itemdetails_id,
+          quantity,
+        };
+        return item;
+      });
+      setDeliveryFeeInput(delivFee);
+      dispatch(actions.checkoutAction.setDeliveryService(valueDelivery));
+    }
+  }, [bookingDetail]);
+
+  // set notif after doing payment
+  React.useEffect(() => {
+    if (processPayment.success) {
+      setPropsNotif({
+        content: processPayment.message,
+        useOneBtn: true,
+        confirm: () => {
+          dispatch(actions.checkoutAction.removeNotifCheckout());
+          dispatch(actions.checkoutAction.removeCheckoutData());
+          if (cartSelected.length) {
+            dispatch(actions.cartAction.deleteCart(token, cartSelected));
+          }
+          setOpenNotif(false);
+          navigation.navigate('TransactionStack', {screen: 'MyOrder'});
+        },
+      });
+      setOpenNotif(true);
+    } else if (processPayment.error) {
+      setPropsNotif({
+        content: processPayment.message,
+        useOneBtn: true,
+        confirm: () => {
+          dispatch(actions.checkoutAction.removeNotifCheckout());
+          setOpenNotif(false);
+        },
+      });
+      setOpenNotif(true);
+    }
+  }, [processPayment.pending]);
+
+  const paymentMethod = [
+    {
+      name: 'Tuku Payment',
+      payment_method: 'tuku_payment',
+      icon: tukuIcon,
+    },
+  ];
+
+  const processToPayment = () => {
+    console.log(checkoutData);
+    const {payment_method} = paymentMethod[paymentSelected];
+    const data = {...checkoutData, payment_method, address_id};
+    console.log(data);
+    dispatch(actions.checkoutAction.processPayment(token, data));
   };
 
-  const selectTukuPayment = () => {
-    setCheckedPayment(!checkedPayment);
+  const submitOrder = () => {
+    if (Number(total)) {
+      setPropsNotif({
+        content: `Checkout items for ${currencyFormat(total)} by ${
+          paymentMethod[paymentSelected].name
+        } and send to ${detailAddress.address_name}?${
+          paymentMethod[paymentSelected].payment_method === 'tuku_payment'
+            ? ` (Your current balance is ${currencyFormat(userData.balance)})`
+            : ''
+        }`,
+        confirm: () => {
+          processToPayment();
+          setOpenNotif(false);
+        },
+        discard: () => {
+          setOpenNotif(false);
+        },
+        confirmText: 'Proceed',
+      });
+      setOpenNotif(true);
+    } else {
+      setPropsNotif({
+        content: 'Select courier and service!',
+        useOneBtn: true,
+        confirm: () => {
+          setOpenNotif(false);
+        },
+      });
+      setOpenNotif(true);
+    }
   };
 
-  React.useEffect(() => {
-    checkedPayment
-      ? setPaymentMethod('tuku_payment')
-      : setPaymentMethod('later');
-  }, [checkedPayment]);
-
-  React.useEffect(() => {
-    console.log(paymentMethod);
-  }, [paymentMethod]);
+  // function to select delivery courier
+  const selectDeliveryCourier = (value, index) => {
+    const {services: serviceArr, couriers: courierArr} = checkoutData;
+    serviceArr[index] = value.service_id;
+    courierArr[index] = value.courier;
+    const data = {
+      ...checkoutData,
+      services: serviceArr,
+      couriers: courierArr,
+    };
+    const delivFee = [...deliveryFee];
+    delivFee[index] = value;
+    dispatch(actions.checkoutAction.setDeliveryService(delivFee));
+    dispatch(actions.checkoutAction.addCheckoutData(data));
+  };
 
   return (
-    <View style={styles.parent}>
-      <ScrollView style={styles.parentWrapper}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.mainTitle}>Checkout</Text>
-        </View>
-
-        <View style={styles.addressWrapper}>
-          <View style={styles.titleWrapper}>
-            <Text style={styles.title}>Shipping Address</Text>
+    <View style={styles.parentContainer}>
+      <ModalLoading modalOpen={processPayment.pending} />
+      <ModalAlert modalOpen={openNotif} {...propsNotif} />
+      <View style={styles.parent}>
+        <ScrollView style={styles.parentWrapper}>
+          <View style={styles.addressWrapper}>
+            <View style={styles.titleWrapper}>
+              <Text style={styles.title}>Shipping Address</Text>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.addressCardContainer}>
+                {Object.keys(detailAddress).length ? (
+                  <AddressCards item={{item: detailAddress}} checkout />
+                ) : (
+                  <View style={styles.loadingWrapper}>
+                    <ActivityIndicator
+                      visible={!Object.keys(detailAddress).length}
+                      size="small"
+                      color="#457373"
+                    />
+                  </View>
+                )}
+              </View>
+            </ScrollView>
           </View>
-          <ScrollView>
-            <View style={styles.addressCardContainer}>
-              <AddressCards
-                item={{item: detailAddress}}
-                changeAddress={goToSelectAddress}
+
+          <View style={styles.checkoutWrapper}>
+            <View style={styles.titleWrapper}>
+              <Text style={styles.title}>Checkout Items</Text>
+            </View>
+            {bookingDetail && bookingDetail.length && !getCheckout.pending ? (
+              // bookingDetail.map((item) => {
+              //   return <CheckoutCard item={{item}} />;
+              // })
+              <FlatList
+                data={bookingDetail ? bookingDetail : []}
+                keyExtractor={(item) => item.index}
+                renderItem={(item) => {
+                  let delivOpt = [
+                    {
+                      value: '',
+                      label: 'Choose one of delivery options bellow',
+                    },
+                  ];
+                  if (deliveryOption.length) {
+                    for (const options of deliveryOption) {
+                      const {seller_id, dataDelivery} = options;
+                      console.log(item.seller_id);
+                      if (seller_id === item.item.seller_id) {
+                        delivOpt = dataDelivery.map((deliveryItem) => {
+                          const {courier, etd, price, service} = deliveryItem;
+                          const value = deliveryItem;
+                          const label =
+                            `${courier}-${service} || ` +
+                            `${currencyFormat(price)}`;
+                          const servicePrice = currencyFormat(price);
+                          deliveryItem = {
+                            value,
+                            label,
+                            service: `${courier} || ${service}`,
+                            etd: `${etd} hari`,
+                            servicePrice,
+                          };
+                          return deliveryItem;
+                        });
+                      }
+                    }
+                  }
+                  return (
+                    <CheckoutCard
+                      item={item}
+                      delivOpt={delivOpt}
+                      defaultValue={deliveryFee[item.index]}
+                      onChange={(e) => selectDeliveryCourier(e, item.index)}
+                    />
+                  );
+                }}
               />
-            </View>
-          </ScrollView>
-        </View>
+            ) : (
+              <View style={styles.loadingWrapper}>
+                <ActivityIndicator
+                  visible={!Object.keys(detailAddress).length}
+                  size="small"
+                  color="#457373"
+                />
+              </View>
+            )}
+          </View>
 
-        <View style={styles.checkoutWrapper}>
-          <View style={styles.titleWrapper}>
-            <Text style={styles.title}>Checkout Items</Text>
-          </View>
-          {bookingDetail && bookingDetail.length
-            ? bookingDetail.map((item) => {
-                return <CheckoutCard item={{item}} />;
-              })
-            : null}
-          {/* <FlatList
-            horizontal
-            item={bookingDetail ? bookingDetail : []}
-            renderItem={(item) => {
-              return <CheckoutCard item={item} />;
-            }}
-          /> */}
-        </View>
-
-        <View style={styles.paymentWrapper}>
-          <View style={styles.titleWrapper}>
-            <Text style={styles.title}>Payment Method</Text>
-          </View>
-          <View style={styles.methodPaymentWrapper}>
-            <View style={styles.iconWrapper}>
-              <FontAwesome5 name="money-check-alt" size={12} color="black" />
-              <Text style={styles.iconText}>Tuku Payment</Text>
+          <View style={styles.paymentWrapper}>
+            <View style={styles.titleWrapper}>
+              <Text style={styles.title}>Payment Method</Text>
             </View>
-            <View style={styles.checkBoxWrapper}>
-              <CheckBox checked={checkedPayment} onPress={selectTukuPayment} />
-            </View>
+            <FlatList
+              data={paymentMethod}
+              keyExtractor={(item) => item.index}
+              renderItem={({item, index}) => {
+                return (
+                  <View style={styles.methodPaymentWrapper}>
+                    <View style={styles.iconWrapper}>
+                      <View style={styles.imagePaymentWrapper}>
+                        <Image source={item.icon} style={styles.iconPayment} />
+                      </View>
+                      <Text style={styles.iconText}>{item.name}</Text>
+                    </View>
+                    <View style={styles.checkBoxWrapper}>
+                      <CheckBox
+                        checked={index === paymentSelected}
+                        onPress={() => setPaymentSelected(index)}
+                      />
+                    </View>
+                  </View>
+                );
+              }}
+            />
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
       <View style={styles.footer}>
         <View style={styles.summaryWrapper}>
           <Text style={styles.summaryTxt}>Order:</Text>
@@ -238,9 +427,11 @@ export default function Main() {
         </View>
         <View style={styles.summaryWrapper}>
           <Text style={styles.summaryTxt}>Summary:</Text>
-          <Text style={styles.priceTotal}>{currencyFormat(total)}</Text>
+          <Text style={styles.priceTotal}>
+            {Number(total) ? currencyFormat(total) : total}
+          </Text>
         </View>
-        <Button rounded block style={styles.btn}>
+        <Button onPress={submitOrder} rounded block style={styles.btn}>
           <Text style={styles.btnTxt}>Submit Order</Text>
         </Button>
       </View>
@@ -249,10 +440,18 @@ export default function Main() {
 }
 
 const styles = StyleSheet.create({
-  parent: {
+  parentContainer: {
     position: 'relative',
     width: '100%',
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'white',
+  },
+  parent: {
+    position: 'relative',
+    width: '100%',
+    height: '75%',
     alignItems: 'center',
   },
   parentWrapper: {
@@ -271,11 +470,11 @@ const styles = StyleSheet.create({
   },
   addressWrapper: {
     width: '100%',
-    paddingHorizontal: '5%',
     marginVertical: 20,
   },
   titleWrapper: {
     width: '100%',
+    paddingHorizontal: '5%',
     marginVertical: 5,
   },
   title: {
@@ -291,14 +490,12 @@ const styles = StyleSheet.create({
   },
   checkoutWrapper: {
     width: '100%',
-    paddingHorizontal: '5%',
     marginVertical: 20,
   },
   paymentWrapper: {
     width: '100%',
     paddingHorizontal: '5%',
-    marginTop: 20,
-    marginBottom: '50%',
+    marginVertical: 20,
   },
   methodPaymentWrapper: {
     flexDirection: 'row',
@@ -306,7 +503,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: '5%',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 10,
+  },
+  imagePaymentWrapper: {
+    width: 50,
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 5,
+  },
+  iconPayment: {
+    width: 50,
+    aspectRatio: 1,
+    resizeMode: 'contain',
   },
   iconWrapper: {
     flexDirection: 'row',
@@ -320,39 +529,38 @@ const styles = StyleSheet.create({
     width: '10%',
   },
   footer: {
-    position: 'absolute',
     width: '100%',
     flexDirection: 'column',
-    zIndex: 2,
-    bottom: 0,
-    height: '22%',
-    backgroundColor: '#EEE',
+    height: '25%',
+    backgroundColor: '#457373',
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
     padding: '5%',
+    elevation: 2,
   },
   summaryWrapper: {
-    marginBottom: 10,
+    marginBottom: 5,
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   summaryTxt: {
-    fontSize: 12,
-    color: '#5A6868',
+    fontSize: 14,
+    color: 'white',
   },
   priceTotal: {
-    fontSize: 12,
-    color: '#102526',
+    fontSize: 14,
+    color: 'white',
     fontWeight: 'bold',
   },
   btn: {
-    backgroundColor: '#457373',
+    backgroundColor: 'white',
+    marginTop: 5,
     padding: 10,
   },
   btnTxt: {
-    color: 'white',
+    color: '#9B8148',
     fontSize: 16,
     fontWeight: 'bold',
   },

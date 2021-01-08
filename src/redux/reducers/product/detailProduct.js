@@ -41,5 +41,11 @@ export default (state = initialState, action) => {
         productDetails: action.payload.data.productDetails,
       };
     }
+    case 'AUTH_USER_LOGOUT': {
+      return {
+        ...state,
+        ...initialState,
+      };
+    }
   }
 };

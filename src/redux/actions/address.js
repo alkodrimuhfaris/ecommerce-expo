@@ -33,4 +33,8 @@ export default {
   clearStateAddress: () => ({
     type: 'CLEAR_STATE_ADDRESS',
   }),
+  selectAddress: (payload = {}) => ({
+    type: 'SELECT_ADDRESS',
+    payload,
+  }),
 };

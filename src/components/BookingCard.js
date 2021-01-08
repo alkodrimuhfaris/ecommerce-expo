@@ -184,9 +184,10 @@ const cardStyle = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 36,
-    elevation: 2,
+    elevation: 4,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'white',
   },
   btnTxt: {
     fontSize: 16,

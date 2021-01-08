@@ -27,6 +27,29 @@ export default function ItemCheckOut({item}) {
           {name}
         </Text>
         <Text style={itemStyle.quantity}>Quantity: {quantity}</Text>
+        <View style={itemStyle.itemTextWrapper}>
+          <Text
+            style={itemStyle.quantity}
+            numberOfLines={2}
+            ellipsizeMode="tail">
+            Color:
+          </Text>
+          <Text
+            style={itemStyle.txtQuantity}
+            numberOfLines={2}
+            ellipsizeMode="tail">
+            {item.item_detail
+              ? ''
+              : !item_detail.length
+              ? ''
+              : item_detail
+                  .map((elementItemDetail) => {
+                    elementItemDetail = `${elementItemDetail.color_name}(${elementItemDetail.quantity})`;
+                    return elementItemDetail;
+                  })
+                  .join(', ')}
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -35,24 +58,29 @@ export default function ItemCheckOut({item}) {
 const itemStyle = StyleSheet.create({
   parent: {
     width: '100%',
-    padding: 28,
+    marginVertical: 15,
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
   imageWrapper: {
-    width: '30%',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    marginRight: 10,
   },
   image: {
-    width: 50,
-    height: 50,
+    width: 75,
+    aspectRatio: 1,
     borderRadius: 8,
-    marginRight: 10,
   },
   textWrapper: {
     width: '70%',
+  },
+  itemTextWrapper: {
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    flexDirection: 'row',
+    flex: 1,
   },
   name: {
     color: '#102526',
@@ -61,7 +89,12 @@ const itemStyle = StyleSheet.create({
     marginBottom: 5,
   },
   quantity: {
-    color: '#102526',
+    color: '#457373',
     fontSize: 14,
+    marginRight: 5,
+  },
+  txtQuantity: {
+    flex: 1,
+    color: '#102526',
   },
 });

@@ -39,5 +39,20 @@ export default (state = initialState, action) => {
         data: action.payload.data.results,
       };
     }
+    case 'CLEAR_STATE_ADDRESS': {
+      return {
+        ...state,
+        success: false,
+        error: false,
+        pending: false,
+        message: '',
+      };
+    }
+    case 'AUTH_USER_LOGOUT': {
+      return {
+        ...state,
+        ...initialState,
+      };
+    }
   }
 };

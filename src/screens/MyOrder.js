@@ -1,74 +1,79 @@
 import React from 'react';
-import {Text, View, StyleSheet, FlatList} from 'react-native';
-import {Container} from 'native-base';
+import {View, StyleSheet, FlatList} from 'react-native';
 import OrderCard from '../components/TransactionCard';
+import {useDispatch, useSelector} from 'react-redux';
+import actions from '../redux/actions/index';
+import queryExtractor from '../helpers/queryExtractor';
 
-const transaction = [
-  {
-    id: 8,
-    user_id: 3,
-    invoice: 'TUKU316042498505034E42D0B1',
-    items_price: 900000,
-    delivery_fee: 57000,
-    additional_fee: null,
-    total_price: 957000,
-    status: 1,
-    created_at: '2020-11-01T16:57:28.000Z',
-  },
-  {
-    id: 7,
-    user_id: 3,
-    invoice: 'TUKU316042490890964CF3CC16',
-    items_price: 900000,
-    delivery_fee: 57000,
-    additional_fee: null,
-    total_price: 957000,
-    status: 1,
-    created_at: '2020-11-01T16:44:46.000Z',
-  },
-];
+export default function ViewOrder({navigation}) {
+  const dispatch = useDispatch();
+  const token = useSelector((state) => state.auth.token);
+  const transactions = useSelector(
+    (state) => state.allTransaction.transactions,
+  );
+  const pageInfo = useSelector((state) => state.allTransaction.pageInfo);
+  const [refresh, setRefresh] = React.useState(false);
 
-export default function ViewOrder() {
-  const transactions = transaction;
+  React.useEffect(() => {
+    dispatch(actions.transactionAction.getAllTransaction(token));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const nextPage = () => {
-    console.log('to the new page');
+    const nextQuery = queryExtractor(pageInfo);
+    if (nextQuery) {
+      dispatch(
+        actions.transactionAction.scrollAllTransaction(token, nextQuery),
+      );
+    }
   };
 
   const goToId = (id) => {
-    console.log(id);
+    dispatch(actions.transactionAction.getTransactionById(token, id));
+    navigation.navigate('TransactionStack', {screen: 'OrderDetail'});
+  };
+
+  const doRefresh = () => {
+    setRefresh(true);
+    dispatch(actions.transactionAction.getAllTransaction(token));
+    setRefresh(false);
   };
 
   return (
-    <Container style={styles.container}>
-      <View style={styles.titleWrapper}>
-        <Text style={styles.title}>My Order</Text>
-      </View>
-
+    <View style={styles.container}>
       <View style={styles.orderArrWrap}>
         <FlatList
-          data={transactions.length ? transactions : []}
+          showsVerticalScrollIndicator={false}
+          data={transactions}
+          refreshing={refresh}
+          onRefresh={doRefresh}
           onEndReached={nextPage}
-          onEndReachedTreshold={0.5}
+          style={styles.flatListStyle}
+          keyExtractor={(item) => item.index}
+          onEndReachedTreshold={0.1}
           renderItem={(item) => {
-            return <OrderCard item={item} idSelect={goToId} />;
+            const {index} = item;
+            return (
+              <View
+                style={
+                  index === transactions.length - 1 ? styles.endData : null
+                }>
+                <OrderCard item={item} idSelect={goToId} />
+              </View>
+            );
           }}
         />
       </View>
-    </Container>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  titleWrapper: {
     width: '100%',
-    paddingHorizontal: '5%',
-    marginTop: 50,
-    marginBottom: 30,
+    height: '100%',
+    alignItems: 'center',
+    backgroundColor: 'white',
   },
   title: {
     fontSize: 34,
@@ -77,17 +82,16 @@ const styles = StyleSheet.create({
   },
   orderArrWrap: {
     width: '100%',
-    paddingHorizontal: '5%',
     flexDirection: 'column',
-    flex: 1,
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  wrapper: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 5,
-    marginBottom: 5,
+    flex: 1,
+  },
+  flatListStyle: {
+    paddingTop: 10,
+    paddingBottom: 30,
+  },
+  endData: {
+    marginBottom: 30,
   },
 });

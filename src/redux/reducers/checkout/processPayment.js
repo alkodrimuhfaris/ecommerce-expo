@@ -37,5 +37,18 @@ export default (state = initialState, action) => {
         message: action.payload.data.message,
       };
     }
+    case 'REMOVE_NOTIF_CHECKOUT': {
+      console.log(initialState);
+      return {
+        ...state,
+        ...initialState,
+      };
+    }
+    case 'AUTH_USER_LOGOUT': {
+      return {
+        ...state,
+        ...initialState,
+      };
+    }
   }
 };

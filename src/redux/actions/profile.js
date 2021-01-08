@@ -1,4 +1,5 @@
 import services from '../../helpers/services';
+import qs from 'qs';
 
 export default {
   getProfile: (token) => ({
@@ -18,5 +19,12 @@ export default {
   }),
   clearStateUpdate: () => ({
     type: 'CLEAR_STATE_UPDATE',
+  }),
+  changePassword: (token, data) => ({
+    type: 'CHANGE_PASSWORD',
+    payload: services(token).post('/users/password', qs.stringify(data)),
+  }),
+  clearStatePassword: () => ({
+    type: 'CLEAR_STATE_PASS',
   }),
 };

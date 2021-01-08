@@ -7,7 +7,15 @@ import {useNavigation} from '@react-navigation/native';
 
 export default function CardItem({item, newProduct = false}) {
   const {item: data, index} = item;
-  const {id, name, rating, ratingCount, product_image_1, store_name} = data;
+  const {
+    id,
+    price,
+    name,
+    rating,
+    ratingCount,
+    product_image_1,
+    store_name,
+  } = data;
   const navigation = useNavigation();
 
   const goToProduct = () => {
@@ -45,7 +53,7 @@ export default function CardItem({item, newProduct = false}) {
             style={cardStyle.itemName}>
             {name}
           </Text>
-          <Text style={cardStyle.itemPrice}>{currency(150000)}</Text>
+          <Text style={cardStyle.itemPrice}>{currency(price)}</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -59,6 +67,7 @@ const cardStyle = StyleSheet.create({
     elevation: 2,
     width: 150,
     height: 300,
+    backgroundColor: 'white',
   },
   newSign: {
     padding: 5,

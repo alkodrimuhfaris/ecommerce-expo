@@ -23,4 +23,11 @@ export default {
     type: 'GET_CHECKOUT',
     payload: services(token).post('/checkout/get', data),
   }),
+  setDeliveryService: (payload = []) => ({
+    type: 'SET_DELIVERY_SERVICE',
+    payload,
+  }),
+  removeNotifCheckout: () => ({
+    type: 'REMOVE_NOTIF_CHECKOUT',
+  }),
 };

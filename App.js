@@ -12,7 +12,7 @@ export default class App extends Component {
       <Provider store={store().store}>
         <PersistGate loading={null} persistor={store().persistor}>
           <SafeAreaView style={styles.parent}>
-            <StatusBar barStyle="light-content" backgroundColor="#102526" />
+            <StatusBar barStyle="dark-content" backgroundColor="white" />
             <Main />
           </SafeAreaView>
         </PersistGate>
@@ -24,5 +24,6 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   parent: {
     flex: 1,
+    backgroundColor: 'white',
   },
 });

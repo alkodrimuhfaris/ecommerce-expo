@@ -27,5 +27,11 @@ export default (state = initialState, action) => {
     default: {
       return state;
     }
+    case 'AUTH_USER_LOGOUT': {
+      return {
+        ...state,
+        ...initialState,
+      };
+    }
   }
 };

@@ -5,62 +5,51 @@ import {FontAwesome} from '@expo/vector-icons';
 import AddressCards from '../components/AddressCards';
 import {useSelector, useDispatch} from 'react-redux';
 import actions from '../redux/actions/index';
+import {useNavigation} from '@react-navigation/native';
+import ModalAlert from '../components/ModalAlert';
+import ModalLoading from '../components/ModalLoading';
 
-const data = [
-  {
-    id: 1,
-    user_id: 3,
-    address_name: 'Home',
-    primary_address: 1,
-    recipient_name: 'Marzuki',
-    phone: '089633449007',
-    city: 'Tangerang',
-    city_type: 'Kota',
-    province_id: 3,
-    city_id: 456,
-    address: 'Gang H. Samir No 76 B, Karang Timur, Karang Tengah, Tangerang',
-    postal_code: 14321,
-    maps_pin_point: null,
-    created_at: '2020-10-30T01:29:18.000Z',
-    updated_at: '2020-11-18T01:32:33.000Z',
-  },
-  {
-    id: 2,
-    user_id: 3,
-    address_name: 'Home',
-    primary_address: 0,
-    recipient_name: 'Marzuki',
-    phone: '089633449007',
-    city: 'Tangerang',
-    city_type: 'Kota',
-    province_id: 3,
-    city_id: 456,
-    address: 'Gang H. Samir No 76 B, Karang Timur, Karang Tengah, Tangerang',
-    postal_code: 14321,
-    maps_pin_point: null,
-    created_at: '2020-10-30T01:29:18.000Z',
-    updated_at: '2020-11-18T01:32:33.000Z',
-  },
-];
-
-export default function SelectAddress() {
-  const address = data;
+export default function SelectAddress({route}) {
+  const {addressAction} = actions;
+  const {selectCheckout} = route.params
+    ? route.params
+    : {selectCheckout: false};
+  const token = useSelector((state) => state.auth.token);
+  const getAddress = useSelector((state) => state.getAddress);
+  const address_id = useSelector((state) => state.selectAddress.address_id);
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
   const [search, setSearch] = useState('');
-  const [select, setSelect] = useState(0);
+  const [openNotif, setOpenNotif] = useState(false);
+  const [propsNotif, setPropsNotif] = useState({});
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     console.log(search);
-    console.log(address);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
-  const selecting = (e) => {
-    setSelect(e);
-  };
-
   useEffect(() => {
-    console.log(select);
-  }, [select]);
+    dispatch(addressAction.getAddress(token));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  const selecting = (data, addressName) => {
+    setPropsNotif({
+      content: `Select ${addressName} as shipment address?`,
+      confirm: () => {
+        dispatch(addressAction.selectAddress(data));
+        setOpenNotif(false);
+        navigation.goBack();
+      },
+      confirmText: 'Yes',
+      discard: () => {
+        setOpenNotif(false);
+      },
+      discardText: 'No',
+    });
+    setOpenNotif(true);
+  };
 
   const changeAddress = (id) => {
     console.log(id);
@@ -71,63 +60,104 @@ export default function SelectAddress() {
   }
 
   const addNewAddress = () => {
-    console.log('add new');
+    navigation.navigate('AddressStack', {screen: 'CreateAddress'});
+  };
+
+  const doRefresh = () => {
+    setRefreshing(true);
+    dispatch(addressAction.getAddress(token));
+    setRefreshing(false);
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputWrapper}>
-        <Input
-          rounded
-          style={styles.input}
-          placeholder={'Search'}
-          placeholderTextColor={'#DADADA'}
-          value={search}
-          onChangeText={(e) => setSearch(e)}
-        />
-        <FontAwesome
-          style={styles.iconSearch}
-          name="search"
-          color={'#DADADA'}
-          size={16}
-        />
+    <View style={styles.parent}>
+      <View style={styles.container}>
+        <ModalLoading modalOpen={getAddress.pending} />
+        <ModalAlert modalOpen={openNotif} {...propsNotif} />
+        {/* <View style={styles.inputWrapper}>
+          <Input
+            rounded
+            style={styles.input}
+            placeholder={'Search'}
+            placeholderTextColor={'#DADADA'}
+            value={search}
+            onChangeText={(e) => setSearch(e)}
+          />
+          <FontAwesome
+            style={styles.iconSearch}
+            name="search"
+            color={'#DADADA'}
+            size={16}
+          />
+        </View> */}
+
+        <View style={styles.titleWrapper}>
+          <Text style={styles.title}>Address</Text>
+        </View>
+
+        <View style={styles.flatListWrapper}>
+          {getAddress.data.length ? (
+            <FlatList
+              data={getAddress.data ? getAddress.data : []}
+              refreshing={refreshing}
+              onRefresh={doRefresh}
+              onEndReached={nextPage}
+              showsVerticalScrollIndicator={false}
+              onEndReachedTreshold={0.5}
+              renderItem={(item) => {
+                const {item: itemData, index} = item;
+                return (
+                  <TouchableOpacity
+                    onPress={() => selecting(itemData, itemData.address_name)}
+                    style={[
+                      styles.wrapper,
+                      index === getAddress.data.length - 1
+                        ? styles.wrapperEnd
+                        : null,
+                    ]}>
+                    <AddressCards
+                      item={item}
+                      changeAddress={changeAddress}
+                      selected={
+                        address_id === 0
+                          ? itemData.primary_address
+                          : address_id === itemData.id
+                          ? 1
+                          : 0
+                      }
+                    />
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          ) : (
+            <View style={styles.noAddress}>
+              <Text style={styles.noAddressTxt}>
+                No address found, Add your address!
+              </Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.btnWrapper}>
+          <Button block rounded style={styles.btn} onPress={addNewAddress}>
+            <Text style={styles.btnTxt}>ADD NEW ADDRESS</Text>
+          </Button>
+        </View>
       </View>
-
-      <View style={styles.titleWrapper}>
-        <Text style={styles.title}>Address</Text>
-      </View>
-
-      <FlatList
-        data={address.length ? address : []}
-        onEndReached={nextPage}
-        onEndReachedTreshold={0.5}
-        renderItem={(item) => {
-          return (
-            <TouchableOpacity
-              onPress={() => selecting(item.index)}
-              style={styles.wrapper}>
-              <AddressCards
-                item={item}
-                changeAddress={changeAddress}
-                selected={select === item.index ? 1 : 0}
-              />
-            </TouchableOpacity>
-          );
-        }}
-      />
-
-      <Button block rounded style={styles.btn} onPress={addNewAddress}>
-        <Text style={styles.btnTxt}>ADD NEW ADDRESS</Text>
-      </Button>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  parent: {
+    height: '100%',
+    width: '100%',
+    backgroundColor: 'white',
+  },
   container: {
-    paddingRight: '5%',
-    paddingLeft: '5%',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'relative',
     flex: 1,
   },
   inputWrapper: {
@@ -151,23 +181,40 @@ const styles = StyleSheet.create({
   },
   titleWrapper: {
     width: '100%',
+    paddingHorizontal: '5%',
     marginTop: 30,
     marginBottom: 10,
+  },
+  flatListWrapper: {
+    width: '100%',
+    flex: 1,
+    zIndex: 1,
   },
   title: {
     fontSize: 16,
     color: '#102526',
     fontWeight: 'bold',
   },
+  btnWrapper: {
+    position: 'absolute',
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    bottom: 0,
+    zIndex: 10,
+    marginBottom: 20,
+  },
   btn: {
-    margin: 3,
     padding: 3,
     borderColor: '#457373',
     borderWidth: 2,
-    backgroundColor: 'transparent',
+    backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    width: '90%',
+    // marginBottom: 30,
+    zIndex: 10,
   },
   btnTxt: {
     color: '#457373',
@@ -187,6 +234,9 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 5,
   },
+  wrapperEnd: {
+    marginBottom: 100,
+  },
   selected: {
     flex: 1,
     alignItems: 'center',
@@ -195,5 +245,16 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     borderWidth: 2,
     borderColor: '#7C4935',
+  },
+  noAddress: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 40,
+  },
+  noAddressTxt: {
+    textAlign: 'center',
+    color: '#7C4935',
+    fontSize: 14,
   },
 });

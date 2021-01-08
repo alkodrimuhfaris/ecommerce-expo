@@ -50,5 +50,11 @@ export default (state = initialState, action) => {
         message: '',
       };
     }
+    case 'AUTH_USER_LOGOUT': {
+      return {
+        ...state,
+        ...initialState,
+      };
+    }
   }
 };

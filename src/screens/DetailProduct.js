@@ -53,6 +53,9 @@ export default function DetailProduct({route}) {
       ].filter((item) => item);
       setPhotoArr(arrOfPhoto);
     }
+    navigation.setOptions({
+      title: dataItem.name,
+    });
   }, [dataItem]);
 
   React.useEffect(() => {
@@ -95,7 +98,8 @@ export default function DetailProduct({route}) {
         setPropsNotif({
           content: 'Login first',
           confirm: () => {
-            navigation.navigate('authStack', {screen: 'Login'});
+            setOpenNotif(false);
+            navigation.navigate('AuthStack', {screen: 'Login'});
           },
           confirmText: 'Login',
           discard: () => {

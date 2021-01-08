@@ -9,11 +9,16 @@ import {
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import ProductCard from '../components/ProductCard';
+import ProductCardList from '../components/ProductCardList';
 import {Button, DatePicker, Form, Label} from 'native-base';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import currencyFormat from '../helpers/currencyFormat';
 import moment from 'moment';
 import {Fontisto} from '@expo/vector-icons';
+import {useSelector, useDispatch} from 'react-redux';
+import actions from '../redux/actions';
+import queryExtractor from '../helpers/queryExtractor';
+import ModalLoading from '../components/ModalLoading';
 
 const sortArray = [
   ['Popular', {rating: 'DESC'}],
@@ -166,6 +171,13 @@ function ModalFilter({modalState, closeModal, setRange, after, before}) {
     setValues([null, null]);
   };
 
+  const apply = () => {
+    setRange(values);
+    before(moment(to).format('YYYY-MM-DD'));
+    after(moment(from).format('YYYY-MM-DD'));
+    closeModal();
+  };
+
   return (
     <Modal animationType="slide" transparent={true} visible={modalState}>
       <View style={filterStyles.centeredView}>
@@ -240,9 +252,7 @@ function ModalFilter({modalState, closeModal, setRange, after, before}) {
                 onPress={discardAll}>
                 <Text style={filterStyles.textDiscardStyle}>Discard</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={filterStyles.openButton}
-                onPress={closeModal}>
+              <TouchableOpacity style={filterStyles.openButton} onPress={apply}>
                 <Text style={filterStyles.textStyle}>Apply</Text>
               </TouchableOpacity>
             </View>
@@ -374,16 +384,110 @@ const filterStyles = StyleSheet.create({
 });
 
 export default function AllProduct({route}) {
-  const {title} = route.params;
+  const {
+    search = '',
+    title,
+    categoryDetail = false,
+    categoryId = 0,
+    allItem = false,
+  } = route.params;
+  const dispatch = useDispatch();
+  const searchProduct = useSelector((state) => state.searchProduct);
+  const getCategoryDetail = useSelector((state) => state.getDetailCategory);
+  const searchResult = useSelector((state) => state.searchProduct.items);
+  const searchPageInfo = useSelector((state) => state.searchProduct.pageInfo);
+  const categoryItems = useSelector((state) => state.getDetailCategory.items);
+  const categoryPageInfo = useSelector(
+    (state) => state.getDetailCategory.pageInfo,
+  );
+  const [pageInfo, setPageInfo] = React.useState(
+    categoryDetail ? categoryPageInfo : searchPageInfo,
+  );
+  const [items, setItems] = React.useState(
+    categoryDetail ? categoryItems : searchResult,
+  );
+
   const [sortBy, setSortBy] = React.useState(0);
   const [stack, setStack] = React.useState(true);
   const [price, setPrice] = React.useState([null, null]);
   const [date, setDate] = React.useState(['', '']);
-  const [search, setSearch] = React.useState({});
   const [sort, setSort] = React.useState({});
+  const [refresh, setRefresh] = React.useState(false);
 
   const [openModalFilter, setOpenModalFilter] = React.useState(false);
   const [openModalSort, setOpenModalSort] = React.useState(false);
+
+  React.useEffect(() => {
+    if (categoryDetail) {
+      setItems(categoryItems);
+      setPageInfo(categoryPageInfo);
+    } else {
+      setItems(searchResult);
+      setPageInfo(searchPageInfo);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchProduct, getCategoryDetail]);
+
+  React.useEffect(() => {
+    const query = {
+      sort: sort,
+      date: {
+        before: date[1],
+        after: date[0],
+      },
+      price: {
+        min: price[0],
+        max: price[1],
+      },
+    };
+    if (categoryDetail) {
+      console.log(query);
+      dispatch(actions.categoryAction.getCategoriesDetail(categoryId, query));
+    } else {
+      Object.assign(query, {search: {name: search}});
+      console.log(query);
+      dispatch(actions.productAction.searchItem(query));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sort, date, price, search]);
+
+  const doRefresh = () => {
+    setRefresh(true);
+
+    const query = {
+      sort: sort,
+      date: {
+        before: date[1],
+        after: date[0],
+      },
+      price: {
+        min: price[0],
+        max: price[1],
+      },
+    };
+    if (categoryDetail) {
+      console.log(query);
+      dispatch(actions.categoryAction.getCategoriesDetail(categoryId, query));
+    } else {
+      Object.assign(query, {search: {name: search}});
+      console.log(query);
+      dispatch(actions.productAction.searchItem(query));
+    }
+    setRefresh(false);
+  };
+
+  const nextPage = () => {
+    const nextQuery = queryExtractor(pageInfo);
+    if (nextQuery) {
+      if (categoryDetail) {
+        dispatch(
+          actions.categoryAction.scrollCategoryDetail(categoryId, nextQuery),
+        );
+      } else {
+        dispatch(actions.productAction.scrollSearchItem(nextQuery));
+      }
+    }
+  };
 
   const setRange = (e) => {
     setPrice(e);
@@ -409,7 +513,7 @@ export default function AllProduct({route}) {
   };
 
   React.useEffect(() => {
-    setSort({sort: sortArray[sortBy][1]});
+    setSort(sortArray[sortBy][1]);
   }, [sortBy]);
 
   const changeStack = () => {
@@ -426,6 +530,11 @@ export default function AllProduct({route}) {
 
   return (
     <View style={styles.parent}>
+      <ModalLoading
+        modalOpen={
+          categoryDetail ? getCategoryDetail.pending : searchProduct.pending
+        }
+      />
       <ModalSort
         modalState={openModalSort}
         closeModal={toggleModalSort}
@@ -438,6 +547,9 @@ export default function AllProduct({route}) {
       <ModalFilter
         modalState={openModalFilter}
         closeModal={toggleModalFilter}
+        before={before}
+        after={after}
+        setRange={setRange}
       />
       <View style={styles.header}>
         <View style={styles.titleWrapper}>
@@ -464,12 +576,43 @@ export default function AllProduct({route}) {
         </View>
       </View>
       <View style={styles.productWrapper}>
-        {/* <FlatList
-          item={}
-          renderItem={(item) => {
-
-          }} /> */}
-        <Text>waw</Text>
+        {stack ? (
+          <FlatList
+            data={items}
+            key={'_'}
+            keyExtractor={(item) => '_' + item.id}
+            onRefresh={doRefresh}
+            refreshing={refresh}
+            numColumns={1}
+            onEndReached={nextPage}
+            onEndReachedTreshold={0.5}
+            renderItem={(item) => {
+              return (
+                <View style={styles.productCardListWrapper}>
+                  <ProductCardList item={item} />
+                </View>
+              );
+            }}
+          />
+        ) : (
+          <FlatList
+            data={items}
+            key={'#'}
+            keyExtractor={(item) => '#' + item.id}
+            onRefresh={doRefresh}
+            refreshing={refresh}
+            numColumns={2}
+            onEndReached={nextPage}
+            onEndReachedTreshold={0.5}
+            renderItem={(item) => {
+              return (
+                <View style={styles.productCardWrapper}>
+                  <ProductCard item={item} />
+                </View>
+              );
+            }}
+          />
+        )}
       </View>
     </View>
   );
@@ -480,9 +623,9 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     alignItems: 'center',
+    backgroundColor: 'white',
   },
   header: {
-    marginTop: 50,
     marginBottom: 20,
     width: '100%',
     borderBottomWidth: 0.5,
@@ -491,7 +634,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: '5%',
   },
   titleWrapper: {
-    marginVertical: 10,
+    marginVertical: 5,
     width: '100%',
   },
   titleText: {
@@ -533,9 +676,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   productWrapper: {
-    padding: '5%',
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  productCardWrapper: {
+    paddingHorizontal: 15,
+  },
+  productCardListWrapper: {
+    paddingHorizontal: 15,
   },
 });

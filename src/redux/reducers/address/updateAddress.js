@@ -19,7 +19,7 @@ export default (state = initialState, action) => {
         message: 'Updating your address',
       };
     }
-    case 'UPDATE_ADDRESS_success': {
+    case 'UPDATE_ADDRESS_REJECTED': {
       return {
         ...state,
         pending: false,
@@ -44,6 +44,12 @@ export default (state = initialState, action) => {
         error: false,
         success: false,
         message: '',
+      };
+    }
+    case 'AUTH_USER_LOGOUT': {
+      return {
+        ...state,
+        ...initialState,
       };
     }
   }

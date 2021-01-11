@@ -7,6 +7,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import {Button} from 'native-base';
 import ProductImage from '../components/ProductImage';
@@ -36,6 +37,7 @@ export default function DetailProduct({route}) {
   const [photoArr, setPhotoArr] = React.useState([]);
   const [openNotif, setOpenNotif] = React.useState(false);
   const [propsNotif, setPropsNotif] = React.useState({});
+  const [refresh, setRefresh] = React.useState(false);
 
   React.useEffect(() => {
     if (dataItem) {
@@ -136,34 +138,47 @@ export default function DetailProduct({route}) {
     }
   }, [postCart.pending]);
 
+  const onRefresh = () => {
+    setRefresh(true);
+    dispatch(productActions.getDetailItem(id));
+    dispatch(productActions.getNewItems());
+    setRefresh(false);
+  };
+
   return (
     <SafeAreaView style={styles.parentContainer}>
       <ModalAlert modalOpen={openNotif} {...propsNotif} />
       <ModalLoading modalOpen={detailItem.pending || postCart.pending} />
-      <View style={styles.scrollParent}>
-        <ScrollView style={styles.scrollContent}>
-          <View style={styles.imageWrapper}>
-            <FlatList
-              data={photoArr}
-              showsHorizontalScrollIndicator={false}
-              horizontal={true}
-              renderItem={(item) => {
-                return <ProductImage item={item} />;
-              }}
-            />
-          </View>
+      {!detailItem.pending ? (
+        <View style={styles.scrollParent}>
+          <ScrollView
+            refreshControl={
+              <RefreshControl onRefresh={onRefresh} refreshing={refresh} />
+            }
+            style={styles.scrollContent}>
+            <View style={styles.imageWrapper}>
+              <FlatList
+                data={photoArr}
+                showsHorizontalScrollIndicator={false}
+                horizontal={true}
+                renderItem={(item) => {
+                  return <ProductImage item={item} />;
+                }}
+              />
+            </View>
 
-          <ContentProduct
-            colorPress={colorPress}
-            changeQty={changeQty}
-            quantity={quantity}
-            colorSelected={colorSelected}
-            productDetails={productDetails ? productDetails : {}}
-            dataItem={dataItem ? dataItem : {}}
-            alsoLikeData={alsoLikeData.length ? alsoLikeData : []}
-          />
-        </ScrollView>
-      </View>
+            <ContentProduct
+              colorPress={colorPress}
+              changeQty={changeQty}
+              quantity={quantity}
+              colorSelected={colorSelected}
+              productDetails={productDetails ? productDetails : {}}
+              dataItem={dataItem ? dataItem : {}}
+              alsoLikeData={alsoLikeData.length ? alsoLikeData : []}
+            />
+          </ScrollView>
+        </View>
+      ) : null}
 
       <View style={styles.footer}>
         <View style={styles.parentBtn}>

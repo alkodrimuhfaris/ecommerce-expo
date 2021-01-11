@@ -7,15 +7,18 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  RefreshControl,
 } from 'react-native';
 import Header from '../components/HeaderHome';
 import ProductCard from '../components/ProductCard';
 import {useSelector, useDispatch} from 'react-redux';
 import productActions from '../redux/actions/product';
+import ModalLoading from '../components/ModalLoading';
 
 export default function Home() {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
+  const [refresh, setRefresh] = React.useState(false);
 
   React.useEffect(() => {
     dispatch(productActions.getNewItems());
@@ -25,10 +28,23 @@ export default function Home() {
 
   const newProduct = useSelector((state) => state.product.newProducts);
   const popularProduct = useSelector((state) => state.product.popularProducts);
+  const product = useSelector((state) => state.product);
+
+  const onRefresh = () => {
+    setRefresh(true);
+    dispatch(productActions.getNewItems());
+    dispatch(productActions.getPopularItems());
+    setRefresh(false);
+  };
 
   return (
     <SafeAreaView style={styles.parent}>
-      <ScrollView vertical>
+      <ModalLoading modalOpen={product.popularPending || product.newPending} />
+      <ScrollView
+        refreshControl={
+          <RefreshControl onRefresh={onRefresh} refreshing={refresh} />
+        }
+        vertical>
         <Header />
 
         <View style={styles.heading}>

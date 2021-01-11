@@ -138,7 +138,7 @@ const modalStyles = StyleSheet.create({
   },
 });
 
-function ModalFilter({modalState, closeModal, setRange, after, before}) {
+function ModalFilter({modalState, closeModal, setRange, setDate}) {
   const [values, setValues] = React.useState([null, null]);
   const [from, setFrom] = React.useState('');
   const [to, setTo] = React.useState('');
@@ -173,8 +173,9 @@ function ModalFilter({modalState, closeModal, setRange, after, before}) {
 
   const apply = () => {
     setRange(values);
-    before(moment(to).format('YYYY-MM-DD'));
-    after(moment(from).format('YYYY-MM-DD'));
+    const after = from ? moment(from).format('YYYY-MM-DD') : '';
+    const before = to ? moment(to).format('YYYY-MM-DD') : '';
+    setDate([after, before]);
     closeModal();
   };
 
@@ -250,7 +251,7 @@ function ModalFilter({modalState, closeModal, setRange, after, before}) {
               <TouchableOpacity
                 style={filterStyles.discardButton}
                 onPress={discardAll}>
-                <Text style={filterStyles.textDiscardStyle}>Discard</Text>
+                <Text style={filterStyles.textDiscardStyle}>Reset</Text>
               </TouchableOpacity>
               <TouchableOpacity style={filterStyles.openButton} onPress={apply}>
                 <Text style={filterStyles.textStyle}>Apply</Text>
@@ -453,6 +454,7 @@ export default function AllProduct({route}) {
 
   const doRefresh = () => {
     setRefresh(true);
+    console.log(date);
 
     const query = {
       sort: sort,
@@ -498,16 +500,6 @@ export default function AllProduct({route}) {
     setPrice(newPrice);
   };
 
-  const before = (e) => {
-    const newDate = [date[0], e];
-    setDate(newDate);
-  };
-
-  const after = (e) => {
-    const newDate = [e, date[1]];
-    setDate(newDate);
-  };
-
   const selectSort = (e) => {
     setSortBy(e);
   };
@@ -547,9 +539,8 @@ export default function AllProduct({route}) {
       <ModalFilter
         modalState={openModalFilter}
         closeModal={toggleModalFilter}
-        before={before}
-        after={after}
         setRange={setRange}
+        setDate={setDate}
       />
       <View style={styles.header}>
         <View style={styles.titleWrapper}>
@@ -579,6 +570,7 @@ export default function AllProduct({route}) {
         {stack ? (
           <FlatList
             data={items}
+            showsVerticalScrollIndicator={false}
             key={'_'}
             keyExtractor={(item) => '_' + item.id}
             onRefresh={doRefresh}
@@ -597,6 +589,7 @@ export default function AllProduct({route}) {
         ) : (
           <FlatList
             data={items}
+            showsVerticalScrollIndicator={false}
             key={'#'}
             keyExtractor={(item) => '#' + item.id}
             onRefresh={doRefresh}
@@ -677,6 +670,7 @@ const styles = StyleSheet.create({
   },
   productWrapper: {
     width: '100%',
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

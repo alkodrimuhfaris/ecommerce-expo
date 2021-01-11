@@ -3,14 +3,6 @@ import {Text, View, StyleSheet} from 'react-native';
 import {Container, Button, Form, Input} from 'native-base';
 import {FontAwesome} from '@expo/vector-icons';
 
-function ButtonSuggestion() {
-  return (
-    <Button rounded style={styles.btn}>
-      <Text style={styles.btnTxt}>Work Shoes</Text>
-    </Button>
-  );
-}
-
 export default function Search({navigation}) {
   const [search, setSearch] = useState('');
 
@@ -45,14 +37,6 @@ export default function Search({navigation}) {
           />
         </View>
       </Form>
-
-      <Text style={styles.text}>Popular Search</Text>
-
-      <View style={styles.btnArrWrap}>
-        {[...Array(10)].map((_item, index) => (
-          <ButtonSuggestion key={index} />
-        ))}
-      </View>
     </Container>
   );
 }

@@ -8,25 +8,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import actions from '../redux/actions/index';
 import queryExtractor from '../helpers/queryExtractor';
 
-const data = [
-  {
-    id: 11,
-    name: 'Fashion wanita',
-    categories_image: 'Uploads/2-categories_image-1603821057970.jpg',
-    created_at: '2020-10-27T17:50:59.000Z',
-    updated_at: null,
-    totalProducts: 1,
-  },
-  {
-    id: 10,
-    name: 'Fashion Pria',
-    categories_image: 'Uploads/2-categories_image-1603820887982.jpg',
-    created_at: '2020-10-27T17:48:09.000Z',
-    updated_at: null,
-    totalProducts: 0,
-  },
-];
-
 export default function Categories() {
   const navigation = useNavigation();
   const dispatch = useDispatch();

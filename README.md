@@ -17,7 +17,7 @@ TUKU APP is an e-commerce app that serve you simple, intuitive and great user ex
 4. Code editor (Visual Studio Code)
 5. Web Browser (Google Chrome)
 
-## How to run the app ?
+## How to run the app?
 1. Open app's directory in CMD
 2. Type `yarn install`
 3. Download Expo Client app in your <a href="https://play.google.com/store/apps/details?id=host.exp.exponent&hl=in&gl=US">android</a> or <a href="https://apps.apple.com/us/app/expo-client/id982107779">iphone</a>
